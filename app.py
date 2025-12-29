@@ -566,7 +566,7 @@ def generate_dong_html(sub_df, dong_name):
         i = 0
         while i < num_cols:
             if i + 1 < num_cols:
-                html += """<td colspan="2">입구</td>"""
+                html += """<td colspan="2">현관</td>"""
                 i += 2 
             else:
                 html += "<td></td>"
