@@ -463,7 +463,7 @@ else:
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("전체", f"{total_cnt}", delta="세대")
     k2.metric("찬성", f"{agree_cnt}", delta="세대")
-    k3.metric("율", f"{total_rate:.1f}%")
+    k3.metric("동의율", f"{total_rate:.1f}%")
     
     with k4:
         st.markdown("""
