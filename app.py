@@ -439,39 +439,43 @@ def generate_dong_html(sub_df, dong_name):
     # 피벗 테이블 생성 (층 x 라인)
     sub_df['info'] = list(zip(sub_df['동의여부'], sub_df['거주유형'], sub_df['호']))
     pivot = sub_df.pivot_table(index='층', columns='라인', values='info', aggfunc='first')
-    pivot = pivot.sort_index(ascending=False) # 고층이 위로 오게 정렬
+    pivot = pivot.sort_index(ascending=False) 
     
     total = len(sub_df)
     agree = len(sub_df[sub_df['동의여부'] == '찬성'])
     rate = (agree / total * 100) if total > 0 else 0
     
-    # ★ 복도식 아파트 확인 로직 ('102', '104', '106'이 포함되면 True)
+    # 복도식 아파트 확인
     target_dongs = ['102', '104', '106']
     is_corridor = any(target in str(dong_name) for target in target_dongs)
     
-    # HTML 시작 (헤더 부분: 폰트 키움, 노란색 강조)
+    # ★ [핵심 수정] 동적 너비 계산
+    # 라인(열) 개수를 셉니다.
+    num_cols = len(pivot.columns)
+    
+    # "라인 수 * 60px"과 "기본 600px" 중 더 큰 값을 표의 최소 너비로 설정
+    # 예: 복도식이 15라인이면 15 * 60 = 900px까지 늘어남 -> 4자리 숫자 안 잘림
+    calculated_width = max(600, num_cols * 60 + 50) # 50은 층수 표시열 여분
+    
     html = f"""
     <div class="dong-card">
         <div class="dong-header">
             {dong_name}동 
             <span style="font-size:16px; color:#FFF176; margin-left:8px; font-weight:normal;">
-                (총 {total}세대 | 동의율 : {rate:.0f}%)
+                (총 {total}세대 | {rate:.0f}%)
             </span>
         </div>
         <div class="mobile-hint">👉 표를 좌우로 밀어서 보세요 👈</div>
         <div class="table-wrapper">
-            <table class="apt-table">
+            <table class="apt-table" style="min-width: {calculated_width}px;">
     """
     
     # [Table Body] 호실 배치
     for floor, row in pivot.iterrows():
         html += "<tr>"
-        
-        # ★ 맨 앞 층수 표시 칸 추가 (Sticky 적용됨)
         html += f'<td class="apt-cell floor-cell">{floor}F</td>'
         
         for idx, line in enumerate(pivot.columns):
-            # 복도식은 굵은 경계선 없음, 계단식은 2칸마다 경계선
             if is_corridor:
                 border_class = ""
             else:
@@ -479,19 +483,15 @@ def generate_dong_html(sub_df, dong_name):
             
             cell_data = row[line] 
             
-            # 데이터가 비어있는 경우 (구조상 없는 호수)
             if not isinstance(cell_data, tuple):
                 html += f'<td class="apt-cell {border_class}"></td>'
                 continue
             
             status, live_type, ho_full = cell_data
             
-            # 상태에 따른 클래스 부여
             cls = "status-unknown"
             if status == '찬성': cls = "status-agree"
             elif status == '반대': cls = "status-disagree"
-            
-            # 아이콘 부여
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
             html += f'<td class="apt-cell {cls} {border_class}"><span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span></td>'
@@ -499,17 +499,10 @@ def generate_dong_html(sub_df, dong_name):
 
     # [Table Footer] 입구 표시
     html += '<tr class="entrance-row">'
-    
-    # ★ 층수 열 아래는 빈칸으로 처리
     html += '<td class="entrance-empty"></td>'
     
-    num_cols = len(pivot.columns)
-    
-    # 복도식: 전체 통합 입구
     if is_corridor:
         html += f"""<td colspan="{num_cols}">공동 현관 (복도식)</td>"""
-    
-    # 계단식: 2라인마다 입구 1개
     else:
         i = 0
         while i < num_cols:
