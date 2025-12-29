@@ -350,15 +350,28 @@ st.markdown("""
         padding: 15px 5px;       
         text-align: center;
         font-weight: bold;
-        /* font-size는 HTML에서 직접 제어하여 줄바꿈 처리 */
     }
     
-    /* 가로 스크롤 영역 */
+    /* ★ [수정됨] 가로 스크롤 영역: 하단 여백 제거 및 스크롤바 스타일링 */
     .table-wrapper {
         overflow-x: auto; 
         -webkit-overflow-scrolling: touch;
         width: 100%;
-        padding-bottom: 5px;
+        padding-bottom: 0px; /* 5px -> 0px 로 변경하여 흰색 공백 제거 */
+        margin-bottom: 0px;
+    }
+    
+    /* 스크롤바 트랙(배경)을 투명하게 설정 */
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px; /* 높이를 얇게 */
+        background: transparent;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+        background: transparent; 
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background-color: #ccc; /* 스크롤바 색상 연한 회색 */
+        border-radius: 3px;
     }
     
     /* 테이블 공통 스타일 */
@@ -369,6 +382,7 @@ st.markdown("""
         border-collapse: collapse;
         border-spacing: 0;
         font-size: 12px;
+        margin-bottom: 0px; /* 테이블 자체 하단 여백 제거 */
     }
     
     /* 일반 셀 스타일 */
@@ -420,6 +434,8 @@ st.markdown("""
         border-top: 2px solid #555;
         border-right: 1px solid #dee2e6;
         border-left: 1px solid #dee2e6;
+        /* 아래쪽 테두리 없애서 카드 바닥과 밀착 */
+        border-bottom: none !important; 
     }
     
     /* 입구 행의 맨 왼쪽(층수열 아래) 빈칸 처리 */
