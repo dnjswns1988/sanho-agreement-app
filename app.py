@@ -455,7 +455,7 @@ def generate_dong_html(sub_df, dong_name):
         <div class="dong-header">
             {dong_name}동 
             <span style="font-size:16px; color:#FFF176; margin-left:8px; font-weight:normal;">
-                (총 {total}세대 | {rate:.0f}%)
+                (총 {total}세대 | 동의율 : {rate:.0f}%)
             </span>
         </div>
         <div class="mobile-hint">👉 표를 좌우로 밀어서 보세요 👈</div>
