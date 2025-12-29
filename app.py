@@ -515,11 +515,11 @@ def generate_dong_html(sub_df, dong_name):
         <div class="dong-header">
             <div style="font-size:20px; margin-bottom:5px;">{dong_name}동</div>
             <div style="font-size:15px; font-weight:normal; line-height:1.4;">
-                <span style="color:#FFF176;">(총 {total} 세대</span> | 
+                <span style="color:#ffffff;">(총 {total} 세대</span> | 
                 <span style="color:#a5d6a7;">찬성: {agree}</span> | 
                 <span style="color:#ff8a80;">반대: {disagree}</span> | 
-                <span style="color:#e0e0e0;">대기: {waiting}</span> | 
-                <span style="color:#FFF176;">동의율: {rate:.0f}%)</span>
+                <span style="color:#FFF176;">응답대기: {waiting}</span> | 
+                <span style="color:#ffffff;">동의율: {rate:.0f}%)</span>
             </div>
         </div>
         <div class="mobile-hint">👉 표를 좌우로 밀어서 보세요 👈</div>
@@ -613,10 +613,10 @@ else:
     
     with k6:
         st.markdown("""
-        <div style="font-size:13px; color:#555; margin-top:0px; border-left:3px solid #ccc; padding-left:10px;">
-        <b>범례</b><br>
-        🟩찬성 🟥반대 🟨대기 <br> 
-        🏠소유주 👤세입자
+        <div style="font-size:16px; color:#333; margin-top:0px; border-left:4px solid #ccc; padding-left:12px; line-height: 1.5;">
+            <strong style="font-size:18px;">범례</strong><br>
+            🟩 찬성 &nbsp; 🟥 반대 &nbsp; 🟨 응답대기 <br> 
+            🏠 소유주거주 &nbsp; 👤 세입자거주
         </div>
         """, unsafe_allow_html=True)
         
