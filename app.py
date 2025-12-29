@@ -4,7 +4,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # ---------------------------------------------------------
-# 1. 페이지 설정 및 디자인 (모바일 반응형 CSS 추가)
+# 1. 페이지 설정 및 디자인 (CSS 강력 수정)
 # ---------------------------------------------------------
 st.set_page_config(layout="wide", page_title="산호아파트 동의 현황")
 
@@ -32,34 +32,36 @@ st.markdown("""
         font-size: 15px;
     }
     
-    /* ★ 핵심 수정 1: 테이블을 감싸는 스크롤 영역 (모바일용) */
+    /* ★ 핵심 수정 1: 스크롤 영역 설정 */
     .table-wrapper {
-        overflow-x: auto; /* 가로 스크롤 허용 */
-        -webkit-overflow-scrolling: touch; /* 모바일 터치 부드럽게 */
+        overflow-x: auto; /* 가로 스크롤 필수 */
+        -webkit-overflow-scrolling: touch;
         width: 100%;
+        padding-bottom: 5px; /* 스크롤바 공간 확보 */
     }
     
-    /* 테이블 스타일 */
+    /* ★ 핵심 수정 2: 테이블 최소 너비 강제 고정 (800px) */
+    /* 화면이 아무리 작아도 표는 800px 밑으로 줄어들지 않음 -> 스크롤 발생 */
     .apt-table {
         width: 100%;
-        /* table-layout: fixed; <- 모바일 스크롤을 위해 제거하거나 상황에 따라 조정 */
+        min-width: 800px !important; 
+        table-layout: fixed;
         border-collapse: collapse;
         font-size: 12px;
-        min-width: 300px; /* 너무 찌그러지지 않게 최소 너비 설정 */
     }
     
-    /* 아파트 호수 셀 */
+    /* 셀 스타일 */
     .apt-cell {
         border: 1px solid #dee2e6;
         padding: 4px 1px;
         text-align: center;
         height: 40px;
         vertical-align: middle;
-        white-space: nowrap; /* 줄바꿈 방지 (매우 중요) */
-        min-width: 45px; /* 셀의 최소 너비 확보 */
+        white-space: nowrap; /* 줄바꿈 절대 금지 */
+        overflow: hidden;    /* 넘치면 숨김 (근데 너비가 넓어서 안 넘침) */
     }
     
-    /* 입구 구분용 세로 굵은 선 */
+    /* 입구 구분용 굵은 선 */
     .border-bold { border-right: 2px solid #555 !important; }
     
     /* 상태별 색상 */
@@ -84,14 +86,19 @@ st.markdown("""
         border-left: 1px solid #dee2e6;
         white-space: nowrap;
     }
-
-    /* ★ 핵심 수정 2: 모바일 화면(폭 600px 이하) 전용 스타일 */
+    
+    /* 모바일 안내 문구 */
+    .mobile-hint {
+        font-size: 11px;
+        color: #888;
+        text-align: right;
+        margin-right: 10px;
+        margin-bottom: 2px;
+        display: none; /* PC에선 숨김 */
+    }
+    
     @media only screen and (max-width: 600px) {
-        .block-container { padding-left: 0.5rem; padding-right: 0.5rem; }
-        .apt-table { font-size: 11px; } /* 글씨 좀 더 작게 */
-        .apt-cell { height: 35px; padding: 2px 0px; min-width: 35px; } /* 높이/너비 줄임 */
-        .icon-style { font-size: 10px; display: block; margin-right: 0; margin-bottom: 2px;} /* 아이콘 위로 보냄 */
-        .ho-text { font-size: 10px; display: block; } /* 호수 텍스트 아래로 */
+        .mobile-hint { display: block; } /* 모바일에서만 보임 */
     }
 
 </style>
@@ -141,12 +148,13 @@ def generate_dong_html(sub_df, dong_name):
     agree = len(sub_df[sub_df['동의여부'] == '찬성'])
     rate = (agree / total * 100) if total > 0 else 0
     
-    # ★ table-wrapper div 추가: 가로 스크롤이 가능하도록 감쌈
+    # HTML 구조: 카드 -> 헤더 -> (안내문구) -> 스크롤영역(table-wrapper) -> 표(apt-table)
     html = f"""
     <div class="dong-card">
         <div class="dong-header">
             {dong_name}동 <span style="font-size:0.85em; opacity:0.9; font-weight:normal;">(총 {total}세대 | {rate:.0f}%)</span>
         </div>
+        <div class="mobile-hint">↔ 좌우로 밀어서 보세요</div>
         <div class="table-wrapper">
             <table class="apt-table">
     """
@@ -167,7 +175,6 @@ def generate_dong_html(sub_df, dong_name):
             elif status == '반대': cls = "status-disagree"
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
-            # 모바일에서는 공간 절약을 위해 아이콘과 텍스트 배치 조정(CSS 처리됨)
             html += f'<td class="apt-cell {cls} {border_class}"><span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span></td>'
         html += "</tr>"
 
@@ -194,7 +201,6 @@ def generate_dong_html(sub_df, dong_name):
 # 4. 메인 화면
 # ---------------------------------------------------------
 st.sidebar.header("설정")
-# 모바일 사용자를 위해 기본값을 1로 변경하거나, 사용자에게 안내
 cols_num = st.sidebar.slider("한 줄에 동 배치 (모바일은 1 추천)", 1, 5, 2) 
 
 if st.sidebar.button("🔄 데이터 새로고침"):
