@@ -503,21 +503,22 @@ def generate_dong_html(sub_df, dong_name):
     target_dongs = ['102', '104', '106']
     is_corridor = any(target in str(dong_name) for target in target_dongs)
     
-    # ★ [수정 1] 동적 너비 계산 (기존 60 -> 80으로 확대)
+    # 동적 너비 계산
     num_cols = len(pivot.columns)
-    # 한 칸당 80px 확보 (4자리 숫자 넉넉함)
     calculated_width = max(600, num_cols * 80 + 50) 
     
-    # ★ [수정 2] 헤더 디자인 변경 (줄바꿈 & 가운데 정렬)
+    # ★ [수정] 헤더 색상 변경
+    # 찬성: #a5d6a7 (연한 초록)
+    # 대기: #e0e0e0 (연한 회색)
     html = f"""
     <div class="dong-card">
         <div class="dong-header">
             <div style="font-size:20px; margin-bottom:5px;">{dong_name}동</div>
             <div style="font-size:15px; font-weight:normal; line-height:1.4;">
                 <span style="color:#FFF176;">(총 {total} 세대</span> | 
-                <span style="color:#FFF176;">찬성: {agree}</span> | 
+                <span style="color:#a5d6a7;">찬성: {agree}</span> | 
                 <span style="color:#ff8a80;">반대: {disagree}</span> | 
-                <span style="color:#ffe0b2;">대기: {waiting}</span> | 
+                <span style="color:#e0e0e0;">대기: {waiting}</span> | 
                 <span style="color:#FFF176;">동의율: {rate:.0f}%)</span>
             </div>
         </div>
