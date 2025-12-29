@@ -511,11 +511,11 @@ def generate_dong_html(sub_df, dong_name):
         <div class="dong-header">
             {dong_name}동 
             <span style="font-size:16px; margin-left:8px; font-weight:normal;">
-                <span style="color:#FFF176;">(총 {total}</span> | 
-                <span style="color:#FFF176;">찬성 {agree}</span> | 
-                <span style="color:#ff8a80;">반대 {disagree}</span> | 
-                <span style="color:#ffe0b2;">대기 {waiting}</span> | 
-                <span style="color:#FFF176;">{rate:.0f}%)</span>
+                <span style="color:#FFF176;">(총 {total} 세대</span> | 
+                <span style="color:#FFF176;">찬성 : {agree}</span> | 
+                <span style="color:#ff8a80;">반대 : {disagree}</span> | 
+                <span style="color:#ffe0b2;">대기 : {waiting}</span> | 
+                <span style="color:#FFF176;">찬성율 : {rate:.0f}%)</span>
             </span>
         </div>
         <div class="mobile-hint">👉 표를 좌우로 밀어서 보세요 👈</div>
