@@ -512,10 +512,10 @@ def generate_dong_html(sub_df, dong_name):
             {dong_name}동 
             <span style="font-size:16px; margin-left:8px; font-weight:normal;">
                 <span style="color:#FFF176;">(총 {total} 세대</span> | 
-                <span style="color:#FFF176;">찬성 : {agree}</span> | 
-                <span style="color:#ff8a80;">반대 : {disagree}</span> | 
-                <span style="color:#ffe0b2;">대기 : {waiting}</span> | 
-                <span style="color:#FFF176;">찬성율 : {rate:.0f}%)</span>
+                <span style="color:#FFF176;">찬성: {agree}</span> | 
+                <span style="color:#ff8a80;">반대: {disagree}</span> | 
+                <span style="color:#ffe0b2;">응답대기: {waiting}</span> | 
+                <span style="color:#FFF176;">동의율: {rate:.0f}%)</span>
             </span>
         </div>
         <div class="mobile-hint">👉 표를 좌우로 밀어서 보세요 👈</div>
@@ -604,11 +604,11 @@ else:
     # 비율: 전체(1) 찬성(1) 반대(1) 대기(1) 율(1.2) 범례(1.8)
     k1, k2, k3, k4, k5, k6 = st.columns([1, 1, 1, 1, 1.2, 1.8])
     
-    k1.metric("전체 세대", f"{total_cnt}", delta="세대")
-    k2.metric("찬성", f"{agree_cnt}", delta="세대")
-    k3.metric("반대", f"{disagree_cnt}", delta="세대", delta_color="inverse")
-    k4.metric("응답대기", f"{waiting_cnt}", delta="세대", delta_color="off") # 회색/중립 느낌
-    k5.metric("동의율", f"{total_rate:.1f}%")
+    k1.metric("전체 세대", f"{total_cnt}")
+    k2.metric("찬성", f"{agree_cnt}")
+    k3.metric("반대", f"{disagree_cnt}")
+    k4.metric("응답대기:", f"{waiting_cnt}") # 회색/중립 느낌
+    k5.metric("전체 동의율 : ", f"{total_rate:.1f}%")
     
     with k6:
         st.markdown("""
