@@ -4,13 +4,12 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # ---------------------------------------------------------
-# 1. 페이지 설정 및 디자인 (CSS 강력 수정)
+# 1. 페이지 설정 및 디자인
 # ---------------------------------------------------------
 st.set_page_config(layout="wide", page_title="산호아파트 동의 현황")
 
 st.markdown("""
 <style>
-    /* 상단 여백 확보 */
     .block-container { padding-top: 3rem; padding-bottom: 5rem; }
     
     .dong-card {
@@ -32,36 +31,33 @@ st.markdown("""
         font-size: 15px;
     }
     
-    /* ★ 핵심 수정 1: 스크롤 영역 설정 */
+    /* ★ 핵심 1: 가로 스크롤 영역 */
     .table-wrapper {
-        overflow-x: auto; /* 가로 스크롤 필수 */
+        overflow-x: auto; 
         -webkit-overflow-scrolling: touch;
         width: 100%;
-        padding-bottom: 5px; /* 스크롤바 공간 확보 */
+        padding-bottom: 10px; /* 스크롤바 터치하기 편하게 여백 */
     }
     
-    /* ★ 핵심 수정 2: 테이블 최소 너비 강제 고정 (800px) */
-    /* 화면이 아무리 작아도 표는 800px 밑으로 줄어들지 않음 -> 스크롤 발생 */
+    /* ★ 핵심 2: 테이블 스타일 (CSS에서 width 강제 지정) */
     .apt-table {
-        width: 100%;
-        min-width: 800px !important; 
-        table-layout: fixed;
+        /* width: 100%;  <- 이거 삭제함 (화면에 맞추지 마!) */
         border-collapse: collapse;
         font-size: 12px;
+        table-layout: fixed; /* 칸 너비 균등 분배 */
     }
     
     /* 셀 스타일 */
     .apt-cell {
         border: 1px solid #dee2e6;
-        padding: 4px 1px;
+        padding: 6px 2px; /* 여백을 좀 더 줌 */
         text-align: center;
-        height: 40px;
+        height: 45px; /* 높이도 시원하게 */
         vertical-align: middle;
-        white-space: nowrap; /* 줄바꿈 절대 금지 */
-        overflow: hidden;    /* 넘치면 숨김 (근데 너비가 넓어서 안 넘침) */
+        white-space: nowrap; 
+        overflow: hidden;
     }
     
-    /* 입구 구분용 굵은 선 */
     .border-bold { border-right: 2px solid #555 !important; }
     
     /* 상태별 색상 */
@@ -69,36 +65,38 @@ st.markdown("""
     .status-disagree { background-color: #f8d7da; color: #842029; font-weight: bold; }
     .status-unknown { background-color: white; color: #ccc; }
     
-    .icon-style { font-size: 12px; margin-right: 2px; }
-    .ho-text { font-size: 11px; font-family: sans-serif; } 
+    .icon-style { font-size: 14px; margin-right: 2px; }
+    .ho-text { font-size: 12px; font-family: sans-serif; font-weight: bold; } 
     
-    /* 하단 입구 표시 바 */
+    /* 입구 행 */
     .entrance-row td {
         background-color: #f1f3f5;
         color: #495057;
         text-align: center;
         vertical-align: middle;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: bold;
-        height: 25px;
+        height: 30px;
         border-top: 2px solid #555;
         border-right: 1px solid #dee2e6;
         border-left: 1px solid #dee2e6;
-        white-space: nowrap;
     }
     
     /* 모바일 안내 문구 */
     .mobile-hint {
-        font-size: 11px;
-        color: #888;
+        font-size: 12px;
+        color: #e03131; /* 빨간색으로 눈에 띄게 */
+        font-weight: bold;
         text-align: right;
-        margin-right: 10px;
-        margin-bottom: 2px;
-        display: none; /* PC에선 숨김 */
+        padding: 5px 10px;
+        background-color: #fff5f5;
+        border-bottom: 1px solid #ffe3e3;
+        display: none;
     }
     
     @media only screen and (max-width: 600px) {
-        .mobile-hint { display: block; } /* 모바일에서만 보임 */
+        .mobile-hint { display: block; }
+        /* 모바일에서 글씨 작게 하던 코드 삭제! 이제 PC랑 똑같이 큼직하게 나옵니다. */
     }
 
 </style>
@@ -137,7 +135,7 @@ def load_data():
 df = load_data()
 
 # ---------------------------------------------------------
-# 3. HTML 생성 함수
+# 3. HTML 생성 함수 (여기가 중요!)
 # ---------------------------------------------------------
 def generate_dong_html(sub_df, dong_name):
     sub_df['info'] = list(zip(sub_df['동의여부'], sub_df['거주유형'], sub_df['호']))
@@ -148,15 +146,15 @@ def generate_dong_html(sub_df, dong_name):
     agree = len(sub_df[sub_df['동의여부'] == '찬성'])
     rate = (agree / total * 100) if total > 0 else 0
     
-    # HTML 구조: 카드 -> 헤더 -> (안내문구) -> 스크롤영역(table-wrapper) -> 표(apt-table)
+    # ★ 여기서 width: 800px를 직접 박아버립니다. (절대 무시 못함) ★
     html = f"""
     <div class="dong-card">
         <div class="dong-header">
             {dong_name}동 <span style="font-size:0.85em; opacity:0.9; font-weight:normal;">(총 {total}세대 | {rate:.0f}%)</span>
         </div>
-        <div class="mobile-hint">↔ 좌우로 밀어서 보세요</div>
+        <div class="mobile-hint">👉 표를 좌우로 밀어서 보세요 👈</div>
         <div class="table-wrapper">
-            <table class="apt-table">
+            <table class="apt-table" style="width: 800px !important;">
     """
     
     for floor, row in pivot.iterrows():
@@ -175,6 +173,7 @@ def generate_dong_html(sub_df, dong_name):
             elif status == '반대': cls = "status-disagree"
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
+            # 모바일에서도 아이콘 옆에 배치 (공간 충분하므로)
             html += f'<td class="apt-cell {cls} {border_class}"><span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span></td>'
         html += "</tr>"
 
@@ -223,7 +222,7 @@ else:
     
     with k4:
         st.markdown("""
-        <div style="font-size:11px; color:#555; margin-top:5px;">
+        <div style="font-size:12px; color:#555; margin-top:5px;">
         🟩찬성 🟥반대 <br> 🏠실거주 👤임대
         </div>
         """, unsafe_allow_html=True)
