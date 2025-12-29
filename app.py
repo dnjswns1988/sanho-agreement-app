@@ -250,7 +250,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 # ---------------------------------------------------------
 # 1. 페이지 설정 및 디자인
 # ---------------------------------------------------------
-st.set_page_config(layout="wide", page_title="산호아파트 동의 현황")
+st.set_page_config(layout="wide", page_title="산호아파트 재건축 사전동의 현황")
 
 st.markdown("""
 <style>
