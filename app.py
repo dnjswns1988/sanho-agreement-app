@@ -458,7 +458,7 @@ else:
     agree_cnt = len(df[df['동의여부']=='찬성'])
     total_rate = (agree_cnt / total_cnt * 100) if total_cnt > 0 else 0
     
-    st.title("🏙️ 산호아파트 재건축 사전동의 현황")
+    st.title("산호아파트 재건축 사전동의 현황")
     
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("전체", f"{total_cnt}", delta="세대")
