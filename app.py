@@ -374,7 +374,7 @@ def check_password():
 # ---------------------------------------------------------
 # 1. 페이지 설정 및 디자인 (CSS)
 # ---------------------------------------------------------
-st.set_page_config(layout="wide", page_title="산호아파트 동의서 접수 현황")
+st.set_page_config(layout="wide", page_title="산호 사전동의 현황")
 
 if not check_password():
     st.stop()
@@ -640,7 +640,7 @@ else:
     # 미접수(아무것도 없는 상태) 계산
     todo_cnt = total_cnt - submitted_total - waiting_cnt
     
-    st.title("산호아파트 동의서 접수 현황판")
+    st.title("산호 사전동의 현황")
     
     # 상단 지표
     k1, k2, k3, k4 = st.columns(4)
