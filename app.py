@@ -344,7 +344,6 @@
 #                 st.markdown(generate_dong_html(sub_df, dong_name), unsafe_allow_html=True)
 
 
-
 import streamlit as st
 import pandas as pd
 import gspread
@@ -448,8 +447,6 @@ st.markdown("""
     
     .border-bold { border-right: 2px solid #555 !important; }
     
-    /* ★ [수정됨] 3가지 상태 색상 정의 ★ */
-    
     /* 1. 파란색 (접수완료): 찬성/반대 */
     .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   
     
@@ -542,12 +539,17 @@ def generate_dong_html(sub_df, dong_name):
     submitted_count = len(sub_df[sub_df['동의여부'].isin(['찬성', '반대'])])
     submitted_rate = (submitted_count / total * 100) if total > 0 else 0
     
+    # ★ [추가] 임대중 비율 계산
+    rented_count = len(sub_df[sub_df['거주유형'] == '임대중'])
+    rented_rate = (rented_count / total * 100) if total > 0 else 0
+    
     target_dongs = ['102', '104', '106']
     is_corridor = any(target in str(dong_name) for target in target_dongs)
     
     num_cols = len(pivot.columns)
     calculated_width = max(600, num_cols * 80 + 50) 
     
+    # ★ [수정] 헤더에 임대 비율 표시 (연한 회색 작은 글씨)
     html = f"""
     <div class="dong-card">
         <div class="dong-header">
@@ -555,7 +557,8 @@ def generate_dong_html(sub_df, dong_name):
             <div style="font-size:14px; font-weight:normal;">
                 총 {total} 세대 중 
                 <span style="color:#74c0fc; font-weight:bold;">{submitted_count}세대 접수</span>
-                (접수율: {submitted_rate:.1f}%)
+                (접수율: {submitted_rate:.1f}%)<br>
+                <span style="font-size:12px; color:#ced4da; margin-top:3px; display:inline-block;">(임대비율: {rented_rate:.0f}%)</span>
             </div>
         </div>
         <div class="mobile-hint">👉 표를 좌우로 밀어서 보세요 👈</div>
@@ -581,13 +584,12 @@ def generate_dong_html(sub_df, dong_name):
             
             status, live_type, ho_full = cell_data
             
-            # ★ [3색 구분 로직] ★
             if status in ['찬성', '반대']:
-                cls = "status-done"      # 파란색 (완료)
+                cls = "status-done"      
             elif status == '응답대기':
-                cls = "status-waiting"   # 노란색 (대기)
+                cls = "status-waiting"   
             else:
-                cls = "status-todo"      # 흰색 (미접수/빈칸)
+                cls = "status-todo"      
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
@@ -648,12 +650,10 @@ else:
     k1.metric("전체 세대", f"{total_cnt}세대")
     k2.metric("접수 완료", f"{submitted_total}세대")
     
-    # ★ 요청하신 대로 "답변대기중"으로 타이틀 변경 및 카운트 연결
     k3.metric("답변 대기중", f"{waiting_cnt}세대")
     
     k4.metric("현재 동의율", f"{agree_rate:.1f}%")
     
-    # ★ [수정됨] 범례: 파란색/흰색 유지 + 노란색 추가
     st.markdown("""
     <div style="font-size:14px; color:#555; margin-top:10px; padding:10px; background-color:#f8f9fa; border-radius:5px;">
         <strong>[범례 가이드]</strong><br>
