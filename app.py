@@ -1,13 +1,49 @@
+##관리자버전
 # import streamlit as st
 # import pandas as pd
 # import gspread
 # from oauth2client.service_account import ServiceAccountCredentials
 
 # # ---------------------------------------------------------
-# # 1. 페이지 설정 및 디자인 (CSS)
+# # 1. 페이지 설정 및 비밀번호(로그인) 기능
 # # ---------------------------------------------------------
 # st.set_page_config(layout="wide", page_title="산호아파트 재건축 사전동의 현황")
 
+# def check_password():
+#     """
+#     비밀번호 입력 창을 띄우고, 맞으면 True를 반환합니다.
+#     st.form을 사용하여 엔터키 입력 시 새로고침 오류를 방지합니다.
+#     """
+#     if "password_correct" not in st.session_state:
+#         st.session_state.password_correct = False
+
+#     if st.session_state.password_correct:
+#         return True
+
+#     # 로그인 화면
+#     col1, col2, col3 = st.columns([1, 2, 1])
+#     with col2:
+#         st.markdown("<br><br><h3 style='text-align:center;'>🔒 관리자 접근 권한이 필요합니다</h3>", unsafe_allow_html=True)
+#         with st.form(key='login_form'):
+#             password = st.text_input("비밀번호를 입력하세요", type="password")
+#             submit_button = st.form_submit_button(label='로그인')
+            
+#             if submit_button:
+#                 # 👇 [설정] 여기 "1234" 부분을 원하는 비밀번호로 바꾸세요
+#                 if password == "tnstnr12": 
+#                     st.session_state.password_correct = True
+#                     st.rerun()
+#                 else:
+#                     st.error("비밀번호가 틀렸습니다.")
+#     return False
+
+# # 비밀번호 체크를 통과하지 못하면 여기서 코드 실행을 멈춤
+# if not check_password():
+#     st.stop()
+
+# # ---------------------------------------------------------
+# # 2. 디자인 (CSS) - 기존 방식 유지
+# # ---------------------------------------------------------
 # st.markdown("""
 # <style>
 #     /* 상단 여백 확보 */
@@ -33,25 +69,25 @@
 #         font-weight: bold;
 #     }
     
-#     /* ★ [수정됨] 가로 스크롤 영역: 하단 여백 제거 및 스크롤바 스타일링 */
+#     /* 가로 스크롤 영역 */
 #     .table-wrapper {
 #         overflow-x: auto; 
 #         -webkit-overflow-scrolling: touch;
 #         width: 100%;
-#         padding-bottom: 0px; /* 5px -> 0px 로 변경하여 흰색 공백 제거 */
+#         padding-bottom: 0px;
 #         margin-bottom: 0px;
 #     }
     
 #     /* 스크롤바 트랙(배경)을 투명하게 설정 */
 #     .table-wrapper::-webkit-scrollbar {
-#         height: 6px; /* 높이를 얇게 */
+#         height: 6px;
 #         background: transparent;
 #     }
 #     .table-wrapper::-webkit-scrollbar-track {
 #         background: transparent; 
 #     }
 #     .table-wrapper::-webkit-scrollbar-thumb {
-#         background-color: #ccc; /* 스크롤바 색상 연한 회색 */
+#         background-color: #ccc;
 #         border-radius: 3px;
 #     }
     
@@ -63,7 +99,7 @@
 #         border-collapse: collapse;
 #         border-spacing: 0;
 #         font-size: 12px;
-#         margin-bottom: 0px; /* 테이블 자체 하단 여백 제거 */
+#         margin-bottom: 0px; 
 #     }
     
 #     /* 일반 셀 스타일 */
@@ -94,11 +130,11 @@
 #     /* 계단식 아파트용 굵은 경계선 */
 #     .border-bold { border-right: 2px solid #555 !important; }
     
-#     /* 상태별 색상 */
-#     .status-agree { background-color: #d1e7dd; color: #0f5132; font-weight: bold; }   /* 초록 */
-#     .status-disagree { background-color: #f8d7da; color: #842029; font-weight: bold; } /* 빨강 */
-#     .status-waiting { background-color: #fff3cd; color: #856404; font-weight: bold; }  /* 노랑 */
-#     .status-unknown { background-color: white; color: #ccc; }                          /* 흰색 */
+#     /* ★ 기존 색상 유지 (초록/빨강/노랑) */
+#     .status-agree { background-color: #d1e7dd; color: #0f5132; font-weight: bold; }   /* 찬성: 초록 */
+#     .status-disagree { background-color: #f8d7da; color: #842029; font-weight: bold; } /* 반대: 빨강 */
+#     .status-waiting { background-color: #fff3cd; color: #856404; font-weight: bold; }  /* 대기: 노랑 */
+#     .status-unknown { background-color: white; color: #ccc; }                          /* 미조사: 흰색 */
     
 #     .icon-style { font-size: 14px; margin-right: 2px; }
 #     .ho-text { font-size: 12px; font-family: sans-serif; font-weight: bold; } 
@@ -115,11 +151,10 @@
 #         border-top: 2px solid #555;
 #         border-right: 1px solid #dee2e6;
 #         border-left: 1px solid #dee2e6;
-#         /* 아래쪽 테두리 없애서 카드 바닥과 밀착 */
 #         border-bottom: none !important; 
 #     }
     
-#     /* 입구 행의 맨 왼쪽(층수열 아래) 빈칸 처리 */
+#     /* 입구 행의 맨 왼쪽 빈칸 처리 */
 #     .entrance-empty {
 #         background-color: #fff !important;
 #         border: none !important;
@@ -147,12 +182,13 @@
 # """, unsafe_allow_html=True)
 
 # # ---------------------------------------------------------
-# # 2. 데이터 로드
+# # 3. 데이터 로드
 # # ---------------------------------------------------------
 # @st.cache_data(ttl=60)
 # def load_data():
 #     try:
 #         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+#         # Streamlit Secrets 사용
 #         creds_dict = st.secrets["gcp_service_account"]
 #         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 #         client = gspread.authorize(creds)
@@ -180,7 +216,7 @@
 # df = load_data()
 
 # # ---------------------------------------------------------
-# # 3. HTML 생성 함수
+# # 4. HTML 생성 함수
 # # ---------------------------------------------------------
 # def generate_dong_html(sub_df, dong_name):
 #     # 피벗 테이블
@@ -204,9 +240,7 @@
 #     num_cols = len(pivot.columns)
 #     calculated_width = max(600, num_cols * 80 + 50) 
     
-#     # ★ [수정] 헤더 색상 변경
-#     # 찬성: #a5d6a7 (연한 초록)
-#     # 대기: #e0e0e0 (연한 회색)
+#     # 헤더 생성
 #     html = f"""
 #     <div class="dong-card">
 #         <div class="dong-header">
@@ -269,8 +303,6 @@
 #                 html += "<td></td>"
 #                 i += 1
     
-#     html += "</tr>"
-        
 #     html += """
 #             </table>
 #         </div>
@@ -279,7 +311,7 @@
 #     return html
 
 # # ---------------------------------------------------------
-# # 4. 메인 화면
+# # 5. 메인 화면
 # # ---------------------------------------------------------
 # st.sidebar.header("설정")
 # cols_num = st.sidebar.slider("한 줄에 동 배치 (PC 추천: 2~3)", 1, 5, 2) 
@@ -331,7 +363,7 @@
 #                 st.markdown(generate_dong_html(sub_df, dong_name), unsafe_allow_html=True)
 
 
-
+##공용 버전
 import streamlit as st
 import pandas as pd
 import gspread
@@ -650,7 +682,7 @@ else:
     k1, k2, k3, k4 = st.columns(4)
     
     k1.metric("전체 세대", f"{total_cnt}세대")
-    k2.metric("접수 완료", f"{submitted_total}세대", f"{submit_rate:.1f}%")
+    k2.metric("접수 완료", f"{submitted_total}세대")
     k3.metric("미접수 (대상)", f"{waiting_cnt}세대")
     # 찬성률은 전체 통계로만 작게 표시 (법적 안전장치)
     k4.metric("현재 동의율", f"{agree_rate:.1f}%", help="전체 세대 대비 찬성표 비율입니다.")
