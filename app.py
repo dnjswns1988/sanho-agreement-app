@@ -1,49 +1,41 @@
-##관리자버전
+# ##공용 버전
 # import streamlit as st
 # import pandas as pd
 # import gspread
 # from oauth2client.service_account import ServiceAccountCredentials
 
 # # ---------------------------------------------------------
-# # 1. 페이지 설정 및 비밀번호(로그인) 기능
+# # 0. [보안] 비밀번호 설정 함수
 # # ---------------------------------------------------------
-# st.set_page_config(layout="wide", page_title="산호아파트 재건축 사전동의 현황")
-
 # def check_password():
-#     """
-#     비밀번호 입력 창을 띄우고, 맞으면 True를 반환합니다.
-#     st.form을 사용하여 엔터키 입력 시 새로고침 오류를 방지합니다.
-#     """
+#     """로그인 기능을 구현하여 아무나 볼 수 없게 합니다."""
 #     if "password_correct" not in st.session_state:
 #         st.session_state.password_correct = False
 
 #     if st.session_state.password_correct:
 #         return True
 
-#     # 로그인 화면
-#     col1, col2, col3 = st.columns([1, 2, 1])
-#     with col2:
-#         st.markdown("<br><br><h3 style='text-align:center;'>🔒 관리자 접근 권한이 필요합니다</h3>", unsafe_allow_html=True)
-#         with st.form(key='login_form'):
-#             password = st.text_input("비밀번호를 입력하세요", type="password")
-#             submit_button = st.form_submit_button(label='로그인')
-            
-#             if submit_button:
-#                 # 👇 [설정] 여기 "1234" 부분을 원하는 비밀번호로 바꾸세요
-#                 if password == "tnstnr12": 
-#                     st.session_state.password_correct = True
-#                     st.rerun()
-#                 else:
-#                     st.error("비밀번호가 틀렸습니다.")
+#     st.markdown("### 🔒 관계자 전용 페이지")
+#     password = st.text_input("비밀번호를 입력하세요", type="password")
+    
+#     # 비밀번호 설정 (원하는 비밀번호로 변경하세요 예: "sanho1234")
+#     if st.button("로그인"):
+#         if password == "sanho2325":  # 실제 운영시엔 복잡한 비밀번호 권장
+#             st.session_state.password_correct = True
+#             st.rerun()
+#         else:
+#             st.error("비밀번호가 틀렸습니다.")
 #     return False
 
-# # 비밀번호 체크를 통과하지 못하면 여기서 코드 실행을 멈춤
+# # ---------------------------------------------------------
+# # 1. 페이지 설정 및 디자인 (CSS)
+# # ---------------------------------------------------------
+# st.set_page_config(layout="wide", page_title="산호아파트 동의서 접수 현황")
+
+# # ★ 비밀번호 체크 (통과 못하면 여기서 코드 중단)
 # if not check_password():
 #     st.stop()
 
-# # ---------------------------------------------------------
-# # 2. 디자인 (CSS) - 기존 방식 유지
-# # ---------------------------------------------------------
 # st.markdown("""
 # <style>
 #     /* 상단 여백 확보 */
@@ -62,7 +54,7 @@
     
 #     /* 동 헤더 (제목) 스타일 */
 #     .dong-header {
-#         background-color: #333;
+#         background-color: #495057; /* 중립적인 진한 회색 */
 #         color: white;
 #         padding: 15px 5px;       
 #         text-align: center;
@@ -78,18 +70,10 @@
 #         margin-bottom: 0px;
 #     }
     
-#     /* 스크롤바 트랙(배경)을 투명하게 설정 */
-#     .table-wrapper::-webkit-scrollbar {
-#         height: 6px;
-#         background: transparent;
-#     }
-#     .table-wrapper::-webkit-scrollbar-track {
-#         background: transparent; 
-#     }
-#     .table-wrapper::-webkit-scrollbar-thumb {
-#         background-color: #ccc;
-#         border-radius: 3px;
-#     }
+#     /* 스크롤바 트랙 투명 설정 */
+#     .table-wrapper::-webkit-scrollbar { height: 6px; background: transparent; }
+#     .table-wrapper::-webkit-scrollbar-track { background: transparent; }
+#     .table-wrapper::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 3px; }
     
 #     /* 테이블 공통 스타일 */
 #     .apt-table {
@@ -99,7 +83,7 @@
 #         border-collapse: collapse;
 #         border-spacing: 0;
 #         font-size: 12px;
-#         margin-bottom: 0px; 
+#         margin-bottom: 0px;
 #     }
     
 #     /* 일반 셀 스타일 */
@@ -113,11 +97,11 @@
 #         overflow: hidden;
 #     }
 
-#     /* 층수 표시 셀 (왼쪽 고정) */
+#     /* 층수 표시 셀 */
 #     .floor-cell {
 #         width: 45px;             
 #         min-width: 45px;
-#         background-color: #f1f3f5;
+#         background-color: #f8f9fa;
 #         color: #495057;
 #         font-weight: bold;
 #         font-size: 11px;
@@ -127,15 +111,16 @@
 #         z-index: 10;
 #     }
     
-#     /* 계단식 아파트용 굵은 경계선 */
 #     .border-bold { border-right: 2px solid #555 !important; }
     
-#     /* ★ 기존 색상 유지 (초록/빨강/노랑) */
-#     .status-agree { background-color: #d1e7dd; color: #0f5132; font-weight: bold; }   /* 찬성: 초록 */
-#     .status-disagree { background-color: #f8d7da; color: #842029; font-weight: bold; } /* 반대: 빨강 */
-#     .status-waiting { background-color: #fff3cd; color: #856404; font-weight: bold; }  /* 대기: 노랑 */
-#     .status-unknown { background-color: white; color: #ccc; }                          /* 미조사: 흰색 */
+#     /* ★ [법적 안전 조치] 상태별 색상 변경 (찬반 구분 제거) */
+#     /* 접수완료 (찬성/반대 모두 포함) -> 차분한 파란색 */
+#     .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   
     
+#     /* 미접수 (방문 필요 대상) -> 흰색 또는 연한 노랑 */
+#     .status-todo { background-color: #ffffff; color: #adb5bd; }  
+    
+#     /* 아이콘 스타일 */
 #     .icon-style { font-size: 14px; margin-right: 2px; }
 #     .ho-text { font-size: 12px; font-family: sans-serif; font-weight: bold; } 
     
@@ -153,8 +138,6 @@
 #         border-left: 1px solid #dee2e6;
 #         border-bottom: none !important; 
 #     }
-    
-#     /* 입구 행의 맨 왼쪽 빈칸 처리 */
 #     .entrance-empty {
 #         background-color: #fff !important;
 #         border: none !important;
@@ -166,29 +149,26 @@
 #     /* 모바일 안내 문구 */
 #     .mobile-hint {
 #         font-size: 12px;
-#         color: #e03131;
+#         color: #868e96;
 #         font-weight: bold;
 #         text-align: right;
 #         padding: 5px 10px;
-#         background-color: #fff5f5;
-#         border-bottom: 1px solid #ffe3e3;
+#         background-color: #f8f9fa;
+#         border-bottom: 1px solid #eee;
 #         display: none;
 #     }
-    
-#     @media only screen and (max-width: 800px) {
-#         .mobile-hint { display: block; }
-#     }
+#     @media only screen and (max-width: 800px) { .mobile-hint { display: block; } }
 # </style>
 # """, unsafe_allow_html=True)
 
 # # ---------------------------------------------------------
-# # 3. 데이터 로드
+# # 2. 데이터 로드
 # # ---------------------------------------------------------
 # @st.cache_data(ttl=60)
 # def load_data():
 #     try:
 #         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-#         # Streamlit Secrets 사용
+#         # Streamlit Cloud 배포 시 secrets 사용 권장
 #         creds_dict = st.secrets["gcp_service_account"]
 #         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 #         client = gspread.authorize(creds)
@@ -216,21 +196,19 @@
 # df = load_data()
 
 # # ---------------------------------------------------------
-# # 4. HTML 생성 함수
+# # 3. HTML 생성 함수
 # # ---------------------------------------------------------
 # def generate_dong_html(sub_df, dong_name):
-#     # 피벗 테이블
+#     # 피벗 테이블 생성
 #     sub_df['info'] = list(zip(sub_df['동의여부'], sub_df['거주유형'], sub_df['호']))
 #     pivot = sub_df.pivot_table(index='층', columns='라인', values='info', aggfunc='first')
 #     pivot = pivot.sort_index(ascending=False) 
     
-#     # 통계 계산
+#     # ★ [통계] 동별 통계는 '접수율'로만 표시 (찬/반 상세 수치는 동별 카드에서 제거)
 #     total = len(sub_df)
-#     agree = len(sub_df[sub_df['동의여부'] == '찬성'])
-#     disagree = len(sub_df[sub_df['동의여부'] == '반대'])
-#     waiting = len(sub_df[sub_df['동의여부'] == '응답대기']) 
-    
-#     rate = (agree / total * 100) if total > 0 else 0
+#     # 찬성+반대 모두 '접수'로 처리
+#     submitted_count = len(sub_df[sub_df['동의여부'].isin(['찬성', '반대'])])
+#     submitted_rate = (submitted_count / total * 100) if total > 0 else 0
     
 #     # 복도식 확인
 #     target_dongs = ['102', '104', '106']
@@ -240,17 +218,14 @@
 #     num_cols = len(pivot.columns)
 #     calculated_width = max(600, num_cols * 80 + 50) 
     
-#     # 헤더 생성
 #     html = f"""
 #     <div class="dong-card">
 #         <div class="dong-header">
 #             <div style="font-size:20px; margin-bottom:5px;">{dong_name}동</div>
-#             <div style="font-size:15px; font-weight:normal; line-height:1.4;">
-#                 <span style="color:#ffffff;">(총 {total} 세대</span> | 
-#                 <span style="color:#a5d6a7;">찬성: {agree}</span> | 
-#                 <span style="color:#ff8a80;">반대: {disagree}</span> | 
-#                 <span style="color:#FFF176;">응답대기: {waiting}</span> | 
-#                 <span style="color:#ffffff;">동의율: {rate:.0f}%)</span>
+#             <div style="font-size:14px; font-weight:normal;">
+#                 총 {total} 세대 중 
+#                 <span style="color:#74c0fc; font-weight:bold;">{submitted_count}세대 접수</span>
+#                 (접수율: {submitted_rate:.1f}%)
 #             </div>
 #         </div>
 #         <div class="mobile-hint">👉 표를 좌우로 밀어서 보세요 👈</div>
@@ -277,10 +252,12 @@
             
 #             status, live_type, ho_full = cell_data
             
-#             cls = "status-unknown"
-#             if status == '찬성': cls = "status-agree"
-#             elif status == '반대': cls = "status-disagree"
-#             elif status == '응답대기': cls = "status-waiting"
+#             # ★ [핵심 수정] 찬성/반대 정보를 제거하고 '접수됨/미접수'로만 표현
+#             # 찬성이든 반대든 서류를 냈으면 'status-done'
+#             if status in ['찬성', '반대']:
+#                 cls = "status-done"  # 파란색 (의사표시 완료)
+#             else:
+#                 cls = "status-todo"  # 흰색 (미접수, 방문 필요)
             
 #             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
@@ -311,10 +288,10 @@
 #     return html
 
 # # ---------------------------------------------------------
-# # 5. 메인 화면
+# # 4. 메인 화면
 # # ---------------------------------------------------------
 # st.sidebar.header("설정")
-# cols_num = st.sidebar.slider("한 줄에 동 배치 (PC 추천: 2~3)", 1, 5, 2) 
+# cols_num = st.sidebar.slider("한 줄에 동 배치", 1, 5, 2) 
 
 # if st.sidebar.button("🔄 데이터 새로고침"):
 #     st.cache_data.clear()
@@ -323,31 +300,35 @@
 # if df.empty:
 #     st.error("데이터를 불러오지 못했습니다. Google Sheets 연결 상태를 확인해주세요.")
 # else:
+#     # 전체 통계 (관리 차원에서 전체 찬/반 비율은 상단에 표시하되, 개별 동에서는 숨김)
 #     total_cnt = len(df)
 #     agree_cnt = len(df[df['동의여부']=='찬성'])
 #     disagree_cnt = len(df[df['동의여부']=='반대'])
 #     waiting_cnt = len(df[df['동의여부']=='응답대기'])
-#     total_rate = (agree_cnt / total_cnt * 100) if total_cnt > 0 else 0
     
-#     st.title("산호아파트 재건축 사전동의 현황")
+#     # 총 접수(의사표현)된 수
+#     submitted_total = agree_cnt + disagree_cnt
+#     submit_rate = (submitted_total / total_cnt * 100) if total_cnt > 0 else 0
+#     agree_rate = (agree_cnt / total_cnt * 100) if total_cnt > 0 else 0
     
-#     # 상단 지표
-#     k1, k2, k3, k4, k5, k6 = st.columns([1, 1, 1, 1, 1.2, 1.8])
+#     st.title("산호아파트 동의서 접수 현황판")
     
-#     k1.metric("전체 세대", f"{total_cnt}")
-#     k2.metric("찬성", f"{agree_cnt}")
-#     k3.metric("반대", f"{disagree_cnt}")
-#     k4.metric("응답대기", f"{waiting_cnt}")
-#     k5.metric("전체 동의율", f"{total_rate:.1f}%")
+#     # 상단 지표 (전체적인 경향만 파악)
+#     k1, k2, k3, k4 = st.columns(4)
     
-#     with k6:
-#         st.markdown("""
-#         <div style="font-size:16px; color:#333; margin-top:0px; border-left:4px solid #ccc; padding-left:12px; line-height: 1.5;">
-#             <strong style="font-size:18px;">범례</strong><br>
-#             🟩 찬성 &nbsp; 🟥 반대 &nbsp; 🟨 응답대기 <br> 
-#             🏠 소유주거주 &nbsp; 👤 세입자거주
-#         </div>
-#         """, unsafe_allow_html=True)
+#     k1.metric("전체 세대", f"{total_cnt}세대")
+#     k2.metric("접수 완료", f"{submitted_total}세대")
+#     k3.metric("미접수 (대상)", f"{waiting_cnt}세대")
+#     # 찬성률은 전체 통계로만 작게 표시 (법적 안전장치)
+#     k4.metric("현재 동의율", f"{agree_rate:.1f}%", help="전체 세대 대비 찬성표 비율입니다.")
+    
+#     st.markdown("""
+#     <div style="font-size:14px; color:#555; margin-top:10px; padding:10px; background-color:#f8f9fa; border-radius:5px;">
+#         <strong>[범례 가이드]</strong><br>
+#         🟦 <b>파란색 (접수완료):</b> 동의서를 제출했거나 의사를 확실히 밝힌 세대 (방문 불필요)<br> 
+#         ⬜ <b>흰색 (미접수):</b> 아직 의사가 확인되지 않은 세대 (우선 방문 대상)
+#     </div>
+#     """, unsafe_allow_html=True)
         
 #     st.divider()
     
@@ -363,7 +344,7 @@
 #                 st.markdown(generate_dong_html(sub_df, dong_name), unsafe_allow_html=True)
 
 
-##공용 버전
+
 import streamlit as st
 import pandas as pd
 import gspread
@@ -373,7 +354,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 # 0. [보안] 비밀번호 설정 함수
 # ---------------------------------------------------------
 def check_password():
-    """로그인 기능을 구현하여 아무나 볼 수 없게 합니다."""
     if "password_correct" not in st.session_state:
         st.session_state.password_correct = False
 
@@ -383,9 +363,8 @@ def check_password():
     st.markdown("### 🔒 관계자 전용 페이지")
     password = st.text_input("비밀번호를 입력하세요", type="password")
     
-    # 비밀번호 설정 (원하는 비밀번호로 변경하세요 예: "sanho1234")
     if st.button("로그인"):
-        if password == "sanho2325":  # 실제 운영시엔 복잡한 비밀번호 권장
+        if password == "sanho2325": 
             st.session_state.password_correct = True
             st.rerun()
         else:
@@ -397,16 +376,13 @@ def check_password():
 # ---------------------------------------------------------
 st.set_page_config(layout="wide", page_title="산호아파트 동의서 접수 현황")
 
-# ★ 비밀번호 체크 (통과 못하면 여기서 코드 중단)
 if not check_password():
     st.stop()
 
 st.markdown("""
 <style>
-    /* 상단 여백 확보 */
     .block-container { padding-top: 3rem; padding-bottom: 5rem; }
     
-    /* 각 동 카드 디자인 */
     .dong-card {
         background-color: white;
         border: 1px solid #e0e0e0;
@@ -417,16 +393,14 @@ st.markdown("""
         overflow: hidden;
     }
     
-    /* 동 헤더 (제목) 스타일 */
     .dong-header {
-        background-color: #495057; /* 중립적인 진한 회색 */
+        background-color: #495057;
         color: white;
         padding: 15px 5px;       
         text-align: center;
         font-weight: bold;
     }
     
-    /* 가로 스크롤 영역 */
     .table-wrapper {
         overflow-x: auto; 
         -webkit-overflow-scrolling: touch;
@@ -435,12 +409,10 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
-    /* 스크롤바 트랙 투명 설정 */
     .table-wrapper::-webkit-scrollbar { height: 6px; background: transparent; }
     .table-wrapper::-webkit-scrollbar-track { background: transparent; }
     .table-wrapper::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 3px; }
     
-    /* 테이블 공통 스타일 */
     .apt-table {
         width: 100%;
         min-width: 600px;
@@ -451,7 +423,6 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
-    /* 일반 셀 스타일 */
     .apt-cell {
         border: 1px solid #dee2e6;
         padding: 6px 2px;
@@ -462,7 +433,6 @@ st.markdown("""
         overflow: hidden;
     }
 
-    /* 층수 표시 셀 */
     .floor-cell {
         width: 45px;             
         min-width: 45px;
@@ -478,18 +448,20 @@ st.markdown("""
     
     .border-bold { border-right: 2px solid #555 !important; }
     
-    /* ★ [법적 안전 조치] 상태별 색상 변경 (찬반 구분 제거) */
-    /* 접수완료 (찬성/반대 모두 포함) -> 차분한 파란색 */
+    /* ★ [수정됨] 3가지 상태 색상 정의 ★ */
+    
+    /* 1. 파란색 (접수완료): 찬성/반대 */
     .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   
     
-    /* 미접수 (방문 필요 대상) -> 흰색 또는 연한 노랑 */
+    /* 2. 노란색 (답변대기): 응답대기 상태 */
+    .status-waiting { background-color: #fff3cd; color: #856404; font-weight: bold; }  
+    
+    /* 3. 흰색 (미접수): 데이터 없음 */
     .status-todo { background-color: #ffffff; color: #adb5bd; }  
     
-    /* 아이콘 스타일 */
     .icon-style { font-size: 14px; margin-right: 2px; }
     .ho-text { font-size: 12px; font-family: sans-serif; font-weight: bold; } 
     
-    /* 하단 입구 행 스타일 */
     .entrance-row td {
         background-color: #e9ecef;
         color: #495057;
@@ -511,7 +483,6 @@ st.markdown("""
         z-index: 10;
     }
 
-    /* 모바일 안내 문구 */
     .mobile-hint {
         font-size: 12px;
         color: #868e96;
@@ -533,11 +504,9 @@ st.markdown("""
 def load_data():
     try:
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        # Streamlit Cloud 배포 시 secrets 사용 권장
         creds_dict = st.secrets["gcp_service_account"]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
-        
         sheet = client.open("sanho_db").worksheet("data")
         data = sheet.get_all_records()
         df = pd.DataFrame(data)
@@ -569,17 +538,13 @@ def generate_dong_html(sub_df, dong_name):
     pivot = sub_df.pivot_table(index='층', columns='라인', values='info', aggfunc='first')
     pivot = pivot.sort_index(ascending=False) 
     
-    # ★ [통계] 동별 통계는 '접수율'로만 표시 (찬/반 상세 수치는 동별 카드에서 제거)
     total = len(sub_df)
-    # 찬성+반대 모두 '접수'로 처리
     submitted_count = len(sub_df[sub_df['동의여부'].isin(['찬성', '반대'])])
     submitted_rate = (submitted_count / total * 100) if total > 0 else 0
     
-    # 복도식 확인
     target_dongs = ['102', '104', '106']
     is_corridor = any(target in str(dong_name) for target in target_dongs)
     
-    # 동적 너비 계산
     num_cols = len(pivot.columns)
     calculated_width = max(600, num_cols * 80 + 50) 
     
@@ -598,7 +563,6 @@ def generate_dong_html(sub_df, dong_name):
             <table class="apt-table" style="min-width: {calculated_width}px;">
     """
     
-    # [Table Body]
     for floor, row in pivot.iterrows():
         html += "<tr>"
         html += f'<td class="apt-cell floor-cell">{floor}F</td>'
@@ -617,19 +581,19 @@ def generate_dong_html(sub_df, dong_name):
             
             status, live_type, ho_full = cell_data
             
-            # ★ [핵심 수정] 찬성/반대 정보를 제거하고 '접수됨/미접수'로만 표현
-            # 찬성이든 반대든 서류를 냈으면 'status-done'
+            # ★ [3색 구분 로직] ★
             if status in ['찬성', '반대']:
-                cls = "status-done"  # 파란색 (의사표시 완료)
+                cls = "status-done"      # 파란색 (완료)
+            elif status == '응답대기':
+                cls = "status-waiting"   # 노란색 (대기)
             else:
-                cls = "status-todo"  # 흰색 (미접수, 방문 필요)
+                cls = "status-todo"      # 흰색 (미접수/빈칸)
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
             html += f'<td class="apt-cell {cls} {border_class}"><span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span></td>'
         html += "</tr>"
 
-    # [Table Footer]
     html += '<tr class="entrance-row">'
     html += '<td class="entrance-empty"></td>'
     
@@ -665,33 +629,37 @@ if st.sidebar.button("🔄 데이터 새로고침"):
 if df.empty:
     st.error("데이터를 불러오지 못했습니다. Google Sheets 연결 상태를 확인해주세요.")
 else:
-    # 전체 통계 (관리 차원에서 전체 찬/반 비율은 상단에 표시하되, 개별 동에서는 숨김)
     total_cnt = len(df)
     agree_cnt = len(df[df['동의여부']=='찬성'])
     disagree_cnt = len(df[df['동의여부']=='반대'])
     waiting_cnt = len(df[df['동의여부']=='응답대기'])
     
-    # 총 접수(의사표현)된 수
     submitted_total = agree_cnt + disagree_cnt
-    submit_rate = (submitted_total / total_cnt * 100) if total_cnt > 0 else 0
     agree_rate = (agree_cnt / total_cnt * 100) if total_cnt > 0 else 0
+    
+    # 미접수(아무것도 없는 상태) 계산
+    todo_cnt = total_cnt - submitted_total - waiting_cnt
     
     st.title("산호아파트 동의서 접수 현황판")
     
-    # 상단 지표 (전체적인 경향만 파악)
+    # 상단 지표
     k1, k2, k3, k4 = st.columns(4)
     
     k1.metric("전체 세대", f"{total_cnt}세대")
     k2.metric("접수 완료", f"{submitted_total}세대")
-    k3.metric("미접수 (대상)", f"{waiting_cnt}세대")
-    # 찬성률은 전체 통계로만 작게 표시 (법적 안전장치)
-    k4.metric("현재 동의율", f"{agree_rate:.1f}%", help="전체 세대 대비 찬성표 비율입니다.")
     
+    # ★ 요청하신 대로 "답변대기중"으로 타이틀 변경 및 카운트 연결
+    k3.metric("답변 대기중", f"{waiting_cnt}세대")
+    
+    k4.metric("현재 동의율", f"{agree_rate:.1f}%")
+    
+    # ★ [수정됨] 범례: 파란색/흰색 유지 + 노란색 추가
     st.markdown("""
     <div style="font-size:14px; color:#555; margin-top:10px; padding:10px; background-color:#f8f9fa; border-radius:5px;">
         <strong>[범례 가이드]</strong><br>
-        🟦 <b>파란색 (접수완료):</b> 동의서를 제출했거나 의사를 확실히 밝힌 세대 (방문 불필요)<br> 
-        ⬜ <b>흰색 (미접수):</b> 아직 의사가 확인되지 않은 세대 (우선 방문 대상)
+        🟦 <b>파란색 (접수완료):</b> 찬/반 의사를 밝힌 세대<br> 
+        🟨 <b>노란색 (답변대기중):</b> 소유자에 연락했으나 미회신 세대<br>
+        ⬜ <b>흰색 (미접수):</b> 미연락 세대
     </div>
     """, unsafe_allow_html=True)
         
