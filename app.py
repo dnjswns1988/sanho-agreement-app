@@ -782,18 +782,10 @@ st.markdown("""
     .border-bold { border-right: 2px solid #555 !important; }
     
     /* ★ [상태별 색상 정의] ★ */
-    
-    /* 1. 파란색 (동의): 찬성 */
-    .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   
-    
-    /* 2. 빨간색 (연락금지): 반대 (법적 안전장치용 명칭) */
-    .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }
-    
-    /* 3. 노란색 (답변대기): 응답대기 상태 */
-    .status-waiting { background-color: #fff3cd; color: #856404; font-weight: bold; }  
-    
-    /* 4. 흰색 (미접수): 데이터 없음 */
-    .status-todo { background-color: #ffffff; color: #adb5bd; }  
+    .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   /* 파란색 (찬성) */
+    .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    /* 빨간색 (반대/연락금지) */
+    .status-waiting { background-color: #fff3cd; color: #856404; font-weight: bold; } /* 노란색 (응답대기) */
+    .status-todo { background-color: #ffffff; color: #adb5bd; }                       /* 흰색 (미접수) */
     
     .icon-style { font-size: 14px; margin-right: 2px; }
     .ho-text { font-size: 12px; font-family: sans-serif; font-weight: bold; } 
@@ -875,11 +867,17 @@ def generate_dong_html(sub_df, dong_name):
     pivot = pivot.sort_index(ascending=False) 
     
     total = len(sub_df)
-    # 접수율 계산 (찬성+반대 모두 포함하여 행정 처리된 건수)
-    submitted_count = len(sub_df[sub_df['동의여부'].isin(['찬성', '반대'])])
-    submitted_rate = (submitted_count / total * 100) if total > 0 else 0
     
-    # 임대중 비율 계산
+    # 1. 찬성 수 (동의율 계산용 분자)
+    agree_count = len(sub_df[sub_df['동의여부'] == '찬성'])
+    
+    # 2. ★ 접수 수 (찬성 + 반대) -> 화면 표시용
+    submitted_count = len(sub_df[sub_df['동의여부'].isin(['찬성', '반대'])])
+    
+    # 3. 동의율 (찬성 / 전체) -> 화면 표시용
+    agree_rate = (agree_count / total * 100) if total > 0 else 0
+    
+    # 4. 임대 비율
     rented_count = len(sub_df[sub_df['거주유형'] == '임대중'])
     rented_rate = (rented_count / total * 100) if total > 0 else 0
     
@@ -889,14 +887,17 @@ def generate_dong_html(sub_df, dong_name):
     num_cols = len(pivot.columns)
     calculated_width = max(600, num_cols * 80 + 50) 
     
+    # ★ [수정됨] "XX 세대 접수 (동의율: XX%)" 로직 적용
+    # 접수: submitted_count (찬+반)
+    # 동의율: agree_rate (찬/전체)
     html = f"""
     <div class="dong-card">
         <div class="dong-header">
             <div style="font-size:20px; margin-bottom:5px;">{dong_name}동</div>
             <div style="font-size:14px; font-weight:normal;">
                 총 {total} 세대 중 
-                <span style="color:#74c0fc; font-weight:bold;">{submitted_count}세대 접수</span>
-                (접수율: {submitted_rate:.1f}%)<br>
+                <span style="color:#74c0fc; font-weight:bold;">{submitted_count} 세대 접수</span>
+                (동의율: {agree_rate:.1f}%)<br>
                 <span style="font-size:12px; color:#ced4da; margin-top:3px; display:inline-block;">(임대비율: {rented_rate:.0f}%)</span>
             </div>
         </div>
@@ -923,15 +924,14 @@ def generate_dong_html(sub_df, dong_name):
             
             status, live_type, ho_full = cell_data
             
-            # ★ [수정됨] 4가지 상태별 클래스 부여 ★
             if status == '찬성':
-                cls = "status-done"      # 파란색 (동의)
+                cls = "status-done"      # 파란색
             elif status == '반대':
                 cls = "status-ban"       # 빨간색 (연락금지)
             elif status == '응답대기':
-                cls = "status-waiting"   # 노란색 (대기)
+                cls = "status-waiting"   # 노란색
             else:
-                cls = "status-todo"      # 흰색 (미접수)
+                cls = "status-todo"      # 흰색
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
@@ -978,28 +978,24 @@ else:
     disagree_cnt = len(df[df['동의여부']=='반대'])
     waiting_cnt = len(df[df['동의여부']=='응답대기'])
     
+    # 동의율 (전체 중 찬성 비율)
     agree_rate = (agree_cnt / total_cnt * 100) if total_cnt > 0 else 0
     
     st.title("산호 사전동의 현황")
     
-    # ★ 상단 지표 (5개 컬럼으로 분리하여 상세 표시)
     k1, k2, k3, k4, k5 = st.columns(5)
     
     k1.metric("전체 세대", f"{total_cnt}세대")
-    k2.metric("동의 접수", f"{agree_cnt}세대")
-    
-    # ★ [핵심 요청 반영] 반대 세대를 '연락금지'로 표시
-    k3.metric("🚫 연락금지", f"{disagree_cnt}세대")
-    
+    k2.metric("동의 세대", f"{agree_cnt}세대")
+    k3.metric("🚫 연락|방문 금지", f"{disagree_cnt}세대")
     k4.metric("답변 대기중", f"{waiting_cnt}세대")
     k5.metric("동의율", f"{agree_rate:.1f}%")
     
-    # ★ 범례 업데이트
     st.markdown("""
     <div style="font-size:14px; color:#555; margin-top:10px; padding:10px; background-color:#f8f9fa; border-radius:5px;">
         <strong>[범례 가이드]</strong><br>
-        🟦 <b>파란색 (동의 접수):</b> 재건축 동의서를 제출한 세대<br> 
-        🟥 <b>빨간색 (연락금지):</b> 재건축 반대 및 방문 거부 의사를 밝힌 세대 (방문 금지)<br>
+        🟦 <b>파란색 (동의):</b> 동의 의사 밝힌 세대<br> 
+        🟥 <b>빨간색 (연락금지):</b> 연락 및 방문 금지 세대<br>
         🟨 <b>노란색 (답변대기중):</b> 소유자에 연락했으나 미회신 세대<br>
         ⬜ <b>흰색 (미접수):</b> 아직 연락되지 않은 세대
     </div>
