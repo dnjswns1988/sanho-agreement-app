@@ -334,7 +334,6 @@
 #                 sub_df = df[df['동'] == dong_name]
 #                 st.markdown(generate_dong_html(sub_df, dong_name), unsafe_allow_html=True)
 
-
 import streamlit as st
 import pandas as pd
 import gspread
@@ -378,10 +377,10 @@ st.markdown("""
         border: 1px solid #e0e0e0;
         border-radius: 8px;
         padding: 0px;
-        margin-bottom: 30px; /* 동 간 간격 넓힘 (프린트 시 구분 용이) */
+        margin-bottom: 30px; 
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         overflow: hidden;
-        page-break-inside: avoid; /* 프린트 시 표가 페이지 중간에 잘리지 않도록 시도 */
+        page-break-inside: avoid; 
     }
     
     .dong-header {
@@ -414,13 +413,13 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
-    /* [수정] 셀 높이를 키워서 메모 공간 확보 */
+    /* [수정] 셀 높이 확장 및 정렬 변경 (메모 공간 확보) */
     .apt-cell {
         border: 1px solid #dee2e6;
         padding: 4px;
         text-align: center;
-        height: 80px; /* 높이를 늘림 (메모 작성용) */
-        vertical-align: top; /* 텍스트 위로 정렬 */
+        height: 85px; /* 높이를 충분히 줌 */
+        vertical-align: top; /* 내용은 위쪽 정렬 */
         white-space: normal; 
         overflow: hidden;
     }
@@ -433,7 +432,7 @@ st.markdown("""
         font-weight: bold;
         font-size: 11px;
         border-right: 2px solid #adb5bd !important;
-        vertical-align: middle; /* 층수는 가운데 정렬 유지 */
+        vertical-align: middle; /* 층수는 가운데 정렬 */
         position: sticky;
         left: 0;
         z-index: 10;
@@ -444,18 +443,19 @@ st.markdown("""
     /* ★ [상태별 색상 정의] ★ */
     .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   /* 파란색 (찬성) */
     .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    /* 빨간색 (반대/연락금지) */
-    .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } /* 노란색 (방문완료) */
+    .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } /* 노란색 (방문완료 - 기존 응답대기 색상) */
     .status-todo { background-color: #ffffff; color: #adb5bd; }                        /* 흰색 (미접수) */
     
     .icon-style { font-size: 14px; margin-right: 2px; }
-    .ho-text { font-size: 13px; font-family: sans-serif; font-weight: bold; display: block; margin-bottom: 4px;} 
+    .ho-text { font-size: 13px; font-family: sans-serif; font-weight: bold; display: inline-block; margin-bottom: 5px;} 
     
-    /* [추가] 메모 작성 칸 스타일 */
+    /* [추가] 메모 박스 스타일 (점선 네모) */
     .memo-box {
-        border: 1px dashed #adb5bd;
-        border-radius: 4px;
+        width: 100%;
         height: 45px; /* 메모 박스 높이 */
-        background-color: rgba(255, 255, 255, 0.6);
+        border: 1px dashed #adb5bd; /* 회색 점선 */
+        border-radius: 4px;
+        background-color: rgba(255,255,255, 0.5);
         margin-top: 2px;
     }
     
@@ -496,7 +496,7 @@ st.markdown("""
     @media print {
         .stSidebar, .stButton, header, footer { display: none !important; }
         .block-container { padding: 0 !important; }
-        .dong-card { border: 1px solid #000; break-inside: avoid; }
+        .dong-card { border: 1px solid #000; break-inside: avoid; margin-bottom: 20px; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -561,8 +561,9 @@ def generate_dong_html(sub_df, dong_name):
     is_corridor = any(target in str(dong_name) for target in target_dongs)
     
     num_cols = len(pivot.columns)
-    calculated_width = max(600, num_cols * 90 + 50) # 칸이 넓어졌으므로 전체 너비 조정
+    calculated_width = max(600, num_cols * 90 + 50) 
     
+    # 헤더 HTML 생성 (들여쓰기 주의)
     html = f"""
     <div class="dong-card">
         <div class="dong-header">
@@ -597,7 +598,7 @@ def generate_dong_html(sub_df, dong_name):
             
             status, live_type, ho_full = cell_data
             
-            # [수정] 상태별 클래스 매핑 ('응답대기' 삭제 -> '방문완료' 추가)
+            # [수정] 상태별 클래스 매핑 ('방문완료' 추가)
             if status == '찬성':
                 cls = "status-done"      
             elif status == '반대':
@@ -609,13 +610,10 @@ def generate_dong_html(sub_df, dong_name):
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
-            # [수정] 셀 내부에 메모 박스(div) 추가
-            html += f'''
-            <td class="apt-cell {cls} {border_class}">
-                <div><span class="icon-style">{icon}</span><span class="ho-text" style="display:inline;">{ho_full}</span></div>
-                <div class="memo-box"></div>
-            </td>
-            '''
+            # [중요] HTML 문자열 생성 시 들여쓰기 문제 방지 (한 줄로 작성)
+            cell_content = f'<div><span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span></div><div class="memo-box"></div>'
+            html += f'<td class="apt-cell {cls} {border_class}">{cell_content}</td>'
+
         html += "</tr>"
 
     html += '<tr class="entrance-row">'
@@ -644,7 +642,7 @@ def generate_dong_html(sub_df, dong_name):
 # 4. 메인 화면
 # ---------------------------------------------------------
 st.sidebar.header("설정")
-# [수정] 한 줄에 동 배치 기본값을 1로 변경
+# [설정] 기본값을 1로 변경 (프린트 편의성)
 cols_num = st.sidebar.slider("한 줄에 동 배치", 1, 5, 1) 
 
 if st.sidebar.button("🔄 데이터 새로고침"):
@@ -657,7 +655,8 @@ else:
     total_cnt = len(df)
     agree_cnt = len(df[df['동의여부']=='찬성'])
     disagree_cnt = len(df[df['동의여부']=='반대'])
-    # [수정] 통계 기준 변경 (응답대기 -> 방문완료)
+    
+    # [수정] 통계 기준을 '방문완료'로 변경
     visited_cnt = len(df[df['동의여부']=='방문완료'])
     
     agree_rate = (agree_cnt / total_cnt * 100) if total_cnt > 0 else 0
@@ -669,10 +668,10 @@ else:
     k1.metric("전체 세대", f"{total_cnt}세대")
     k2.metric("동의 세대", f"{agree_cnt}세대")
     k3.metric("🚫 연락|방문 금지", f"{disagree_cnt}세대")
-    k4.metric("방문 완료", f"{visited_cnt}세대") # 이름 변경
+    k4.metric("방문 완료", f"{visited_cnt}세대") 
     k5.metric("동의율", f"{agree_rate:.1f}%")
     
-    # [수정] 범례 텍스트 수정
+    # [수정] 범례 텍스트 업데이트
     st.markdown("""
     <div style="font-size:14px; color:#555; margin-top:10px; padding:10px; background-color:#f8f9fa; border-radius:5px;">
         <strong>[범례 가이드]</strong><br>
