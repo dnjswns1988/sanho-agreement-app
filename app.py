@@ -70,29 +70,24 @@ st.markdown("""
         width: 100%;
         min-width: 600px;
         table-layout: fixed;
-        border-collapse: collapse; /* 테두리 겹침 허용 */
+        border-collapse: collapse; 
         border-spacing: 0;
         font-size: 12px;
         margin-bottom: 0px;
     }
     
-    /* ▼▼▼ [수정됨] 층 구분선(가로) 확실하게 변경 ▼▼▼ */
+    /* 셀 디자인 */
     .apt-cell {
-        /* 가로선: 층 바닥을 검정색(#000) 2px 실선으로 처리 */
-        border-bottom: 2px solid #000 !important;
-        
-        /* 세로선: 호수 사이는 연한 회색 유지 */
+        border-bottom: 2px solid #000 !important; /* 층 구분선(가로) 진하게 */
         border-left: 1px solid #dee2e6;
         border-right: 1px solid #dee2e6;
-        
-        /* 위쪽 선은 없애서 이중선 방지 (윗집의 바닥선이 내 천장이 됨) */
         border-top: 0px !important;
 
-        padding: 6px 2px;
+        padding: 8px 2px;
         text-align: center;
-        height: 45px;
-        vertical-align: middle;
-        white-space: nowrap; 
+        height: 80px;         /* 메모 공간 확보 */
+        vertical-align: top;  /* 텍스트 위로 정렬 */
+        white-space: normal;  
         overflow: hidden;
     }
 
@@ -104,11 +99,11 @@ st.markdown("""
         font-weight: bold;
         font-size: 11px;
         
-        /* 층수 표시 셀도 바닥선 검정색으로 통일 */
         border-bottom: 2px solid #000 !important;
-        border-right: 2px solid #adb5bd !important; /* 층수와 호수 사이는 조금 진한 회색 */
+        border-right: 2px solid #adb5bd !important; 
         border-top: 0px !important;
         
+        vertical-align: middle; 
         position: sticky;
         left: 0;
         z-index: 10;
@@ -120,12 +115,29 @@ st.markdown("""
     .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   
     .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    
     .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } 
-    .status-todo { background-color: #ffffff; color: #adb5bd; }                       
+    
+    /* ▼▼▼ [수정됨] 미응답 세대(흰색 배경) 글자색을 검정(#000)으로 변경 ▼▼▼ */
+    .status-todo { background-color: #ffffff; color: #000000; }                       
     
     .icon-style { font-size: 14px; margin-right: 2px; }
     
-    /* 폰트 크기 18px */
-    .ho-text { font-size: 18px; font-family: sans-serif; font-weight: bold; } 
+    /* 호수 폰트 크기 18px */
+    .ho-text { 
+        font-size: 18px; 
+        font-family: sans-serif; 
+        font-weight: bold; 
+        display: block;      
+        margin-bottom: 4px;  
+    } 
+
+    /* 메모 스타일 */
+    .memo-text {
+        font-size: 11px;
+        color: #495057;
+        font-weight: normal;
+        line-height: 1.2;
+        min-height: 10px; 
+    }
     
     .entrance-row td {
         background-color: #e9ecef;
@@ -135,10 +147,7 @@ st.markdown("""
         font-size: 12px;
         font-weight: bold;
         height: 35px;
-        
-        /* 1층 바닥 아래(현관 위)도 검정선 처리 */
         border-top: 2px solid #000 !important; 
-        
         border-right: 1px solid #dee2e6;
         border-left: 1px solid #dee2e6;
         border-bottom: none !important; 
@@ -184,6 +193,10 @@ def load_data():
         if '동의여부' not in df.columns: df['동의여부'] = '미조사'
         if '거주유형' not in df.columns: df['거주유형'] = ''
         
+        # 비고 컬럼 처리
+        if '비고' not in df.columns: df['비고'] = ''
+        else: df['비고'] = df['비고'].fillna('').astype(str)
+
         def get_floor_line(h):
             try:
                 if len(h) >= 3: return int(h[:-2]), int(h[-2:])
@@ -201,23 +214,14 @@ df = load_data()
 # 3. HTML 생성 함수
 # ---------------------------------------------------------
 def generate_dong_html(sub_df, dong_name):
-    # 피벗 테이블 생성
-    sub_df['info'] = list(zip(sub_df['동의여부'], sub_df['거주유형'], sub_df['호']))
+    sub_df['info'] = list(zip(sub_df['동의여부'], sub_df['거주유형'], sub_df['호'], sub_df['비고']))
     pivot = sub_df.pivot_table(index='층', columns='라인', values='info', aggfunc='first')
     pivot = pivot.sort_index(ascending=False) 
     
     total = len(sub_df)
-    
-    # 1. 찬성 수
     agree_count = len(sub_df[sub_df['동의여부'] == '찬성'])
-    
-    # 2. 접수 수
     submitted_count = len(sub_df[sub_df['동의여부'].isin(['찬성', '반대'])])
-    
-    # 3. 동의율
     agree_rate = (agree_count / total * 100) if total > 0 else 0
-    
-    # 4. 임대 비율
     rented_count = len(sub_df[sub_df['거주유형'] == '임대중'])
     rented_rate = (rented_count / total * 100) if total > 0 else 0
     
@@ -232,7 +236,8 @@ def generate_dong_html(sub_df, dong_name):
         <div class="dong-header">
             <div style="font-size:20px; margin-bottom:5px;">{dong_name}동</div>
             <div style="font-size:14px; font-weight:normal;">
-                총 {total} 세대
+                총 {total} 세대 중 
+                <span style="color:#74c0fc; font-weight:bold;">{submitted_count} 세대 접수</span>
                 (동의율: {agree_rate:.1f}%)<br>
                 <span style="font-size:12px; color:#ced4da; margin-top:3px; display:inline-block;">(임대비율: {rented_rate:.0f}%)</span>
             </div>
@@ -258,7 +263,7 @@ def generate_dong_html(sub_df, dong_name):
                 html += f'<td class="apt-cell {border_class}"></td>'
                 continue
             
-            status, live_type, ho_full = cell_data
+            status, live_type, ho_full, memo_text = cell_data
             
             if status == '찬성':
                 cls = "status-done"      
@@ -271,7 +276,11 @@ def generate_dong_html(sub_df, dong_name):
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
-            html += f'<td class="apt-cell {cls} {border_class}"><span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span></td>'
+            html += f'<td class="apt-cell {cls} {border_class}">'
+            html += f'<span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span>'
+            html += f'<div class="memo-text">{memo_text}</div>'
+            html += '</td>'
+            
         html += "</tr>"
 
     html += '<tr class="entrance-row">'
