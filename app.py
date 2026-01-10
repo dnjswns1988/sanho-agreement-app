@@ -70,21 +70,23 @@ st.markdown("""
         width: 100%;
         min-width: 600px;
         table-layout: fixed;
-        border-collapse: collapse;
+        border-collapse: collapse; /* 테두리 겹침 허용 */
         border-spacing: 0;
         font-size: 12px;
         margin-bottom: 0px;
     }
     
-    /* ▼▼▼ [수정됨] 층간 구분선 강화 ▼▼▼ */
+    /* ▼▼▼ [수정됨] 층 구분선(가로) 확실하게 변경 ▼▼▼ */
     .apt-cell {
-        /* 기존 테두리 설정 제거 후 상하/좌우 분리 설정 */
-        /* border: 1px solid #dee2e6; */ 
+        /* 가로선: 층 바닥을 검정색(#000) 2px 실선으로 처리 */
+        border-bottom: 2px solid #000 !important;
         
-        border-top: 2px solid #333;    /* 상단(층간) 구분선을 진하고 두껍게 */
-        border-bottom: 2px solid #333; /* 하단(층간) 구분선을 진하고 두껍게 */
-        border-left: 1px solid #dee2e6;  /* 좌측(호수간) 은 기존처럼 연하게 */
-        border-right: 1px solid #dee2e6; /* 우측(호수간) 은 기존처럼 연하게 */
+        /* 세로선: 호수 사이는 연한 회색 유지 */
+        border-left: 1px solid #dee2e6;
+        border-right: 1px solid #dee2e6;
+        
+        /* 위쪽 선은 없애서 이중선 방지 (윗집의 바닥선이 내 천장이 됨) */
+        border-top: 0px !important;
 
         padding: 6px 2px;
         text-align: center;
@@ -101,10 +103,11 @@ st.markdown("""
         color: #495057;
         font-weight: bold;
         font-size: 11px;
-        border-right: 2px solid #adb5bd !important;
-        /* ▼▼▼ 층 표시 셀도 상하 테두리 강화 ▼▼▼ */
-        border-top: 2px solid #333;
-        border-bottom: 2px solid #333;
+        
+        /* 층수 표시 셀도 바닥선 검정색으로 통일 */
+        border-bottom: 2px solid #000 !important;
+        border-right: 2px solid #adb5bd !important; /* 층수와 호수 사이는 조금 진한 회색 */
+        border-top: 0px !important;
         
         position: sticky;
         left: 0;
@@ -113,15 +116,15 @@ st.markdown("""
     
     .border-bold { border-right: 2px solid #555 !important; }
     
-    /* ★ [상태별 색상 정의] ★ */
-    .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   /* 파란색 (찬성) */
-    .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    /* 빨간색 (반대/연락금지) */
-    .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } /* 노란색 (방문완료) */
-    .status-todo { background-color: #ffffff; color: #adb5bd; }                       /* 흰색 (미접수) */
+    /* 상태별 색상 */
+    .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   
+    .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    
+    .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } 
+    .status-todo { background-color: #ffffff; color: #adb5bd; }                       
     
     .icon-style { font-size: 14px; margin-right: 2px; }
     
-    /* 폰트 크기 18px 유지 */
+    /* 폰트 크기 18px */
     .ho-text { font-size: 18px; font-family: sans-serif; font-weight: bold; } 
     
     .entrance-row td {
@@ -132,8 +135,10 @@ st.markdown("""
         font-size: 12px;
         font-weight: bold;
         height: 35px;
-        /* 현관 부분 테두리도 진하게 맞춤 */
-        border-top: 2px solid #333;
+        
+        /* 1층 바닥 아래(현관 위)도 검정선 처리 */
+        border-top: 2px solid #000 !important; 
+        
         border-right: 1px solid #dee2e6;
         border-left: 1px solid #dee2e6;
         border-bottom: none !important; 
@@ -206,10 +211,10 @@ def generate_dong_html(sub_df, dong_name):
     # 1. 찬성 수
     agree_count = len(sub_df[sub_df['동의여부'] == '찬성'])
     
-    # 2. 접수 수 (찬성 + 반대)
+    # 2. 접수 수
     submitted_count = len(sub_df[sub_df['동의여부'].isin(['찬성', '반대'])])
     
-    # 3. 동의율 (찬성 / 전체)
+    # 3. 동의율
     agree_rate = (agree_count / total * 100) if total > 0 else 0
     
     # 4. 임대 비율
@@ -227,7 +232,8 @@ def generate_dong_html(sub_df, dong_name):
         <div class="dong-header">
             <div style="font-size:20px; margin-bottom:5px;">{dong_name}동</div>
             <div style="font-size:14px; font-weight:normal;">
-                총 {total} 세대
+                총 {total} 세대 중 
+                <span style="color:#74c0fc; font-weight:bold;">{submitted_count} 세대 접수</span>
                 (동의율: {agree_rate:.1f}%)<br>
                 <span style="font-size:12px; color:#ced4da; margin-top:3px; display:inline-block;">(임대비율: {rented_rate:.0f}%)</span>
             </div>
@@ -255,15 +261,14 @@ def generate_dong_html(sub_df, dong_name):
             
             status, live_type, ho_full = cell_data
             
-            # 상태 로직: 응답대기 -> 방문완료
             if status == '찬성':
-                cls = "status-done"      # 파란색
+                cls = "status-done"      
             elif status == '반대':
-                cls = "status-ban"       # 빨간색 (연락금지)
+                cls = "status-ban"       
             elif status == '방문완료':
-                cls = "status-visited"   # 노란색
+                cls = "status-visited"   
             else:
-                cls = "status-todo"      # 흰색
+                cls = "status-todo"      
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
@@ -308,8 +313,6 @@ else:
     total_cnt = len(df)
     agree_cnt = len(df[df['동의여부']=='찬성'])
     disagree_cnt = len(df[df['동의여부']=='반대'])
-    
-    # 응답대기 -> 방문완료 집계
     visited_cnt = len(df[df['동의여부']=='방문완료'])
     
     agree_rate = (agree_cnt / total_cnt * 100) if total_cnt > 0 else 0
@@ -324,13 +327,12 @@ else:
     k4.metric("방문 완료", f"{visited_cnt}세대")
     k5.metric("동의율", f"{agree_rate:.1f}%")
     
-    # 범례 텍스트
     st.markdown("""
     <div style="font-size:14px; color:#555; margin-top:10px; padding:10px; background-color:#f8f9fa; border-radius:5px;">
         <strong>[범례 가이드]</strong><br>
         🟦 <b>파란색 (동의):</b> 동의 의사 밝힌 세대<br> 
         🟥 <b>빨간색 (연락금지):</b> 연락 및 방문 금지 세대<br>
-        🟨 <b>노란색 (방문완료):</b> 산호 지원군이 1차 방문 완료한 세대들<br>
+        🟨 <b>노란색 (방문완료):</b> 방문하였으나 부재/보류 등<br>
         ⬜ <b>흰색 (미접수):</b> 아직 연락되지 않은 세대
     </div>
     """, unsafe_allow_html=True)
