@@ -108,7 +108,9 @@ st.markdown("""
     .status-todo { background-color: #ffffff; color: #adb5bd; }                       /* 흰색 (미접수) */
     
     .icon-style { font-size: 14px; margin-right: 2px; }
-    .ho-text { font-size: 12px; font-family: sans-serif; font-weight: bold; } 
+    
+    /* ▼▼▼ [수정됨] 폰트 크기 12px -> 18px로 변경 ▼▼▼ */
+    .ho-text { font-size: 18px; font-family: sans-serif; font-weight: bold; } 
     
     .entrance-row td {
         background-color: #e9ecef;
@@ -333,4 +335,3 @@ else:
             with cols[idx]:
                 sub_df = df[df['동'] == dong_name]
                 st.markdown(generate_dong_html(sub_df, dong_name), unsafe_allow_html=True)
-
