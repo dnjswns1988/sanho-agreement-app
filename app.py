@@ -375,7 +375,7 @@ st.markdown("""
     
     .dong-card {
         background-color: white;
-        border: 1px solid #999; /* 외곽 테두리도 조금 더 진하게 */
+        border: 1px solid #ced4da; /* 외곽선도 부드러운 회색으로 */
         border-radius: 8px;
         padding: 0px;
         margin-bottom: 30px; 
@@ -414,9 +414,9 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
-    /* [수정] 기본 셀 테두리를 진한 회색(#888)으로 변경하여 모든 호실 구분 명확화 */
+    /* [수정] 기본 셀 테두리는 아주 연한 회색(#dcdcdc)으로 하여 난잡함 제거 */
     .apt-cell {
-        border: 1px solid #888888; /* 기존 #dee2e6(연회색) -> #888(진한회색) 변경 */
+        border: 1px solid #dcdcdc; 
         padding: 3px; 
         text-align: center;
         height: 150px; 
@@ -432,8 +432,8 @@ st.markdown("""
         color: #495057;
         font-weight: bold;
         font-size: 11px;
-        border-right: 2px solid #555 !important; /* 층수와 호실 사이 구분선 */
-        border-bottom: 1px solid #888; /* 층수 칸 아래도 진하게 */
+        border-right: 2px solid #888 !important; /* 층수와 호실 사이는 조금 진하게 */
+        border-bottom: 1px solid #dcdcdc; 
         vertical-align: middle; 
         position: sticky;
         left: 0;
@@ -441,14 +441,15 @@ st.markdown("""
         padding: 4px;
     }
     
-    /* [수정] 계단식 라인(현관) 구분선: 아주 진한 검정색(#222) */
-    .separation-vertical { 
-        border-right: 2px solid #222222 !important; 
-    }
-
-    /* [수정] 복도식 층 구분선: 아주 진한 검정색(#222) */
+    /* [수정] 구분선 색상 완화: 검정(#222) -> 진한 회색(#666) */
+    /* 가로선 (층 구분) */
     .separation-horizontal { 
-        border-bottom: 2px solid #222222 !important; 
+        border-bottom: 2px solid #666666 !important; 
+    }
+    
+    /* 세로선 (계단식 라인 구분) */
+    .separation-vertical { 
+        border-right: 2px solid #666666 !important; 
     }
     
     /* ★ [상태별 색상 정의] ★ */
@@ -493,21 +494,21 @@ st.markdown("""
 
     /* [Case 1] 미접수 (흰색) */
     .status-todo .memo-box {
-        border: 2px dashed #000000;
+        border: 2px dashed #adb5bd; /* 점선도 회색으로 부드럽게 */
         opacity: 0.8;
     }
     .status-todo .memo-top {
-        border-bottom: 1px dashed #000000;
-        color: #000000;
+        border-bottom: 1px dashed #adb5bd;
+        color: #495057;
     }
 
     /* [Case 2] 방문완료 (노란색) */
     .status-visited .memo-box {
-        border: 1px dashed #856404; 
-        opacity: 0.8;
+        border: 1px dashed #dfa538; /* 조금 더 부드러운 갈색/노란색 */
+        opacity: 0.9;
     }
     .status-visited .memo-top {
-        border-bottom: 1px dashed #856404;
+        border-bottom: 1px dashed #dfa538;
         color: #856404; 
     }
 
@@ -519,9 +520,9 @@ st.markdown("""
         font-size: 12px;
         font-weight: bold;
         height: 35px;
-        border-top: 2px solid #222; /* 현관 위쪽 선도 진하게 */
-        border-right: 1px solid #888;
-        border-left: 1px solid #888;
+        border-top: 2px solid #666; /* 현관 위쪽 선도 진한 회색 */
+        border-right: 1px solid #dcdcdc;
+        border-left: 1px solid #dcdcdc;
         border-bottom: none !important; 
         padding: 5px;
     }
@@ -551,8 +552,6 @@ st.markdown("""
         .dong-card { border: 1px solid #000; break-inside: avoid; margin-bottom: 20px; }
         .status-todo .memo-box { border: 2px dashed #000000 !important; }
         .status-visited .memo-box { border: 1px dashed #856404 !important; }
-        /* 인쇄 시에도 선 선명하게 */
-        .apt-cell { border: 1px solid #000 !important; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -630,18 +629,17 @@ def generate_dong_html(sub_df, dong_name):
     for floor, row in pivot.iterrows():
         html += "<tr>"
         
-        # 층 표시 셀 (복도식일 경우 층 구분선 적용)
-        floor_style_class = "separation-horizontal" if is_corridor else ""
-        html += f'<td class="apt-cell floor-cell {floor_style_class}">{floor}F</td>'
+        # [수정] 모든 동에 대해 층 구분선(가로) 적용하여 층 식별 강화
+        html += f'<td class="apt-cell floor-cell separation-horizontal">{floor}F</td>'
         
         for idx, line in enumerate(pivot.columns):
             style_classes = []
             
-            if is_corridor:
-                # [복도식] 층 구분선(가로) 강조
-                style_classes.append("separation-horizontal")
-            else:
-                # [계단식] 라인 구분선(세로) 강조
+            # [수정] 1. 모든 동(복도식, 계단식 불문)에 가로선(층 구분) 적용
+            style_classes.append("separation-horizontal")
+
+            # [수정] 2. 계단식(101,103..)인 경우에만 세로선(라인 구분) 추가 적용
+            if not is_corridor:
                 if (idx + 1) % 2 == 0 and (idx + 1) < num_cols:
                     style_classes.append("separation-vertical")
             
@@ -650,7 +648,6 @@ def generate_dong_html(sub_df, dong_name):
             cell_data = row[line] 
             
             if not isinstance(cell_data, tuple):
-                # 빈 셀도 테두리는 진하게 유지
                 html += f'<td class="apt-cell {border_class}"></td>'
                 continue
             
