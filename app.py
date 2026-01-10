@@ -579,8 +579,7 @@ def generate_dong_html(sub_df, dong_name):
         <div class="dong-header">
             <div style="font-size:20px; margin-bottom:5px;">{dong_name}동</div>
             <div style="font-size:14px; font-weight:normal;">
-                총 {total} 세대 중 
-                <span style="color:#74c0fc; font-weight:bold;">{submitted_count} 세대 접수</span>
+                총 {total} 세대 
                 (동의율: {agree_rate:.1f}%)<br>
                 <span style="font-size:12px; color:#ced4da; margin-top:3px; display:inline-block;">(임대비율: {rented_rate:.0f}%)</span>
             </div>
