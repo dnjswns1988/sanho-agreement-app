@@ -350,7 +350,6 @@
 #                 sub_df = df[df['동'] == dong_name]
 #                 st.markdown(generate_dong_html(sub_df, dong_name), unsafe_allow_html=True)
 
-
 import streamlit as st
 import pandas as pd
 import gspread
@@ -429,22 +428,18 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
-    /* ▼▼▼ [수정됨] 높이 80px로 확장 및 상단 정렬 ▼▼▼ */
+    /* 셀 디자인 */
     .apt-cell {
-        /* 가로선: 층 바닥을 검정색(#000) 2px 실선 */
-        border-bottom: 2px solid #000 !important;
-        
-        /* 세로선: 호수 사이는 연한 회색 */
+        border-bottom: 2px solid #000 !important; /* 층 구분선(가로) 진하게 */
         border-left: 1px solid #dee2e6;
         border-right: 1px solid #dee2e6;
-        
         border-top: 0px !important;
 
-        padding: 8px 2px;     /* 내부 여백 약간 조정 */
+        padding: 8px 2px;
         text-align: center;
-        height: 80px;         /* 높이를 키움 (메모 공간) */
-        vertical-align: top;  /* 글씨를 위쪽으로 붙임 */
-        white-space: normal;  /* 메모가 길면 줄바꿈 되도록 */
+        height: 80px;         /* 메모 공간 확보를 위해 높이 키움 */
+        vertical-align: top;  /* 텍스트 위로 정렬 */
+        white-space: normal;  
         overflow: hidden;
     }
 
@@ -460,7 +455,7 @@ st.markdown("""
         border-right: 2px solid #adb5bd !important; 
         border-top: 0px !important;
         
-        vertical-align: middle; /* 층수는 가운데 정렬 유지 */
+        vertical-align: middle; 
         position: sticky;
         left: 0;
         z-index: 10;
@@ -468,6 +463,7 @@ st.markdown("""
     
     .border-bold { border-right: 2px solid #555 !important; }
     
+    /* 상태별 색상 */
     .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   
     .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    
     .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } 
@@ -475,22 +471,22 @@ st.markdown("""
     
     .icon-style { font-size: 14px; margin-right: 2px; }
     
-    /* 호수 폰트: 18px */
+    /* 호수 폰트 크기 18px */
     .ho-text { 
         font-size: 18px; 
         font-family: sans-serif; 
         font-weight: bold; 
-        display: block;      /* 블록 요소로 만들어 줄바꿈 */
-        margin-bottom: 4px;  /* 아래 메모와 간격 */
+        display: block;      
+        margin-bottom: 4px;  
     } 
 
-    /* ▼▼▼ [추가됨] 메모 스타일 ▼▼▼ */
+    /* 메모 스타일 */
     .memo-text {
         font-size: 11px;
         color: #495057;
         font-weight: normal;
         line-height: 1.2;
-        min-height: 10px; /* 비어있어도 공간 확보 */
+        min-height: 10px; 
     }
     
     .entrance-row td {
@@ -547,7 +543,7 @@ def load_data():
         if '동의여부' not in df.columns: df['동의여부'] = '미조사'
         if '거주유형' not in df.columns: df['거주유형'] = ''
         
-        # ▼▼▼ [추가됨] 비고(메모) 컬럼 처리 ▼▼▼
+        # 비고 컬럼 처리
         if '비고' not in df.columns: df['비고'] = ''
         else: df['비고'] = df['비고'].fillna('').astype(str)
 
@@ -565,26 +561,17 @@ def load_data():
 df = load_data()
 
 # ---------------------------------------------------------
-# 3. HTML 생성 함수
+# 3. HTML 생성 함수 (수정됨: 들여쓰기 제거)
 # ---------------------------------------------------------
 def generate_dong_html(sub_df, dong_name):
-    # ▼▼▼ [수정됨] 비고 컬럼 포함 ▼▼▼
     sub_df['info'] = list(zip(sub_df['동의여부'], sub_df['거주유형'], sub_df['호'], sub_df['비고']))
     pivot = sub_df.pivot_table(index='층', columns='라인', values='info', aggfunc='first')
     pivot = pivot.sort_index(ascending=False) 
     
     total = len(sub_df)
-    
-    # 1. 찬성 수
     agree_count = len(sub_df[sub_df['동의여부'] == '찬성'])
-    
-    # 2. 접수 수
     submitted_count = len(sub_df[sub_df['동의여부'].isin(['찬성', '반대'])])
-    
-    # 3. 동의율
     agree_rate = (agree_count / total * 100) if total > 0 else 0
-    
-    # 4. 임대 비율
     rented_count = len(sub_df[sub_df['거주유형'] == '임대중'])
     rented_rate = (rented_count / total * 100) if total > 0 else 0
     
@@ -594,6 +581,7 @@ def generate_dong_html(sub_df, dong_name):
     num_cols = len(pivot.columns)
     calculated_width = max(600, num_cols * 80 + 50) 
     
+    # HTML 문자열 생성 (들여쓰기 주의)
     html = f"""
     <div class="dong-card">
         <div class="dong-header">
@@ -626,7 +614,6 @@ def generate_dong_html(sub_df, dong_name):
                 html += f'<td class="apt-cell {border_class}"></td>'
                 continue
             
-            # ▼▼▼ [수정됨] 데이터 언패킹 (비고 추가) ▼▼▼
             status, live_type, ho_full, memo_text = cell_data
             
             if status == '찬성':
@@ -640,13 +627,12 @@ def generate_dong_html(sub_df, dong_name):
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
-            # ▼▼▼ [수정됨] 호수 아래에 메모 공간 추가 ▼▼▼
-            html += f"""
-            <td class="apt-cell {cls} {border_class}">
-                <span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span>
-                <div class="memo-text">{memo_text}</div>
-            </td>
-            """
+            # [수정] 들여쓰기 제거하여 단일 문자열로 연결
+            html += f'<td class="apt-cell {cls} {border_class}">'
+            html += f'<span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span>'
+            html += f'<div class="memo-text">{memo_text}</div>'
+            html += '</td>'
+            
         html += "</tr>"
 
     html += '<tr class="entrance-row">'
