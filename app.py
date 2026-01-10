@@ -371,7 +371,6 @@ if not check_password():
 
 st.markdown("""
 <style>
-    /* 제목 잘림 방지 (padding-top: 3rem) */
     .block-container { padding-top: 3rem; padding-bottom: 5rem; }
     
     .dong-card {
@@ -415,12 +414,12 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
-    /* [수정] 셀 높이 85px -> 90px (내용 추가 공간 확보) */
+    /* [수정] 셀 높이를 110px로 더 늘림 (메모 공간 및 글씨 확대 반영) */
     .apt-cell {
         border: 1px solid #dee2e6;
         padding: 4px;
         text-align: center;
-        height: 90px; 
+        height: 110px; 
         vertical-align: top; 
         white-space: normal; 
         overflow: hidden;
@@ -446,50 +445,60 @@ st.markdown("""
     .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   /* 파란색 */
     .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    /* 빨간색 */
     .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } /* 노란색 */
-    .status-todo { background-color: #ffffff; color: #000000; font-weight: bold; }    /* 흰색 (미접수) */
+    .status-todo { background-color: #ffffff; color: #000000; font-weight: bold; }    /* 흰색 */
     
     .icon-style { font-size: 14px; margin-right: 2px; }
     .ho-text { font-size: 13px; font-family: sans-serif; font-weight: bold; display: inline-block; margin-bottom: 4px;} 
     
-    /* [수정] 메모 박스 스타일 */
+    /* 메모 박스 기본 레이아웃 */
     .memo-box {
         width: 100%;
-        height: 50px; /* 박스 높이 조정 */
-        border: 1px dashed #adb5bd; 
+        height: 65px; /* 박스 높이 키움 */
         border-radius: 4px;
         background-color: transparent; 
         margin-top: 2px;
-        display: flex;       /* 내부 분할을 위해 flex 사용 */
+        display: flex;       
         flex-direction: column;
     }
     
-    /* 미접수 상태(status-todo)의 메모 박스: 진한 검정 테두리 */
+    /* [수정] 메모 상단 (글씨 크기 확대 10px -> 12px, bold) */
+    .memo-top {
+        height: 24px;
+        line-height: 24px;
+        font-size: 12px; 
+        font-weight: bold;
+        text-align: center;
+    }
+    
+    /* 메모 하단 (공란) */
+    .memo-bottom {
+        flex: 1; 
+    }
+
+    /* ------------------------------------------------ */
+    /* [Case 1] 미접수 (흰색) 스타일 정의 */
+    /* ------------------------------------------------ */
     .status-todo .memo-box {
         border: 2px dashed #000000;
         opacity: 0.9;
     }
-    
-    /* [추가] 메모박스 상단 (세입자|소유자) */
-    .memo-top {
-        height: 20px;
-        border-bottom: 1px dashed #adb5bd;
-        font-size: 10px;
-        line-height: 20px;
-        color: #555;
-        text-align: center;
-    }
-    
-    /* 미접수 상태의 메모박스 상단은 검정색으로 진하게 */
     .status-todo .memo-top {
         border-bottom: 1px dashed #000000;
         color: #000000;
-        font-weight: normal; /* 글자는 너무 두껍지 않게 */
     }
-    
-    /* [추가] 메모박스 하단 (공란) */
-    .memo-bottom {
-        flex: 1; /* 남은 공간 다 차지 */
+
+    /* ------------------------------------------------ */
+    /* [Case 2] 방문완료 (노란색) 스타일 정의 */
+    /* ------------------------------------------------ */
+    .status-visited .memo-box {
+        border: 1px dashed #856404; /* 짙은 노란/갈색 점선 */
+        opacity: 0.9;
     }
+    .status-visited .memo-top {
+        border-bottom: 1px dashed #856404;
+        color: #856404; /* 글씨도 짙은 색으로 */
+    }
+
     
     .entrance-row td {
         background-color: #e9ecef;
@@ -528,8 +537,13 @@ st.markdown("""
         .stSidebar, .stButton, header, footer { display: none !important; }
         .block-container { padding: 0 !important; }
         .dong-card { border: 1px solid #000; break-inside: avoid; margin-bottom: 20px; }
+        
+        /* 프린트 시 강제 스타일 적용 */
         .status-todo .memo-box { border: 2px dashed #000000 !important; }
         .status-todo .memo-top { border-bottom: 1px dashed #000000 !important; color: #000 !important; }
+        
+        .status-visited .memo-box { border: 1px dashed #856404 !important; }
+        .status-visited .memo-top { border-bottom: 1px dashed #856404 !important; color: #856404 !important; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -633,12 +647,10 @@ def generate_dong_html(sub_df, dong_name):
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
-            # [수정] 미접수(흰색) 세대만 구분란 표시
-            if cls == "status-todo":
-                # '세입자 | 소유자' 로 표시 (집주인거주 -> 소유자로 간략화하여 공간확보)
+            # [수정] 미접수(흰색) 또는 방문완료(노란색) 일 때 메모 박스 생성
+            if cls in ["status-todo", "status-visited"]:
                 memo_content = '<div class="memo-top">세입자 | 소유자</div><div class="memo-bottom"></div>'
             else:
-                # 다른 상태는 그냥 빈 공란
                 memo_content = ''
 
             cell_content = f'<div><span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span></div><div class="memo-box">{memo_content}</div>'
