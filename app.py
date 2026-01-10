@@ -413,13 +413,12 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
-    /* [수정] 셀 높이 확장 및 정렬 변경 (메모 공간 확보) */
     .apt-cell {
         border: 1px solid #dee2e6;
         padding: 4px;
         text-align: center;
-        height: 85px; /* 높이를 충분히 줌 */
-        vertical-align: top; /* 내용은 위쪽 정렬 */
+        height: 85px; 
+        vertical-align: top; 
         white-space: normal; 
         overflow: hidden;
     }
@@ -432,7 +431,7 @@ st.markdown("""
         font-weight: bold;
         font-size: 11px;
         border-right: 2px solid #adb5bd !important;
-        vertical-align: middle; /* 층수는 가운데 정렬 */
+        vertical-align: middle; 
         position: sticky;
         left: 0;
         z-index: 10;
@@ -443,19 +442,19 @@ st.markdown("""
     /* ★ [상태별 색상 정의] ★ */
     .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   /* 파란색 (찬성) */
     .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    /* 빨간색 (반대/연락금지) */
-    .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } /* 노란색 (방문완료 - 기존 응답대기 색상) */
+    .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } /* 노란색 (방문완료) */
     .status-todo { background-color: #ffffff; color: #adb5bd; }                        /* 흰색 (미접수) */
     
     .icon-style { font-size: 14px; margin-right: 2px; }
     .ho-text { font-size: 13px; font-family: sans-serif; font-weight: bold; display: inline-block; margin-bottom: 5px;} 
     
-    /* [추가] 메모 박스 스타일 (점선 네모) */
+    /* [수정] 메모 박스 스타일 - 배경을 투명하게 변경 */
     .memo-box {
         width: 100%;
-        height: 45px; /* 메모 박스 높이 */
-        border: 1px dashed #adb5bd; /* 회색 점선 */
+        height: 45px; 
+        border: 1px dashed #adb5bd; /* 테두리는 유지 */
         border-radius: 4px;
-        background-color: rgba(255,255,255, 0.5);
+        background-color: transparent; /* 투명하게 하여 부모 셀(호실)의 색이 보이게 함 */
         margin-top: 2px;
     }
     
@@ -563,7 +562,6 @@ def generate_dong_html(sub_df, dong_name):
     num_cols = len(pivot.columns)
     calculated_width = max(600, num_cols * 90 + 50) 
     
-    # 헤더 HTML 생성 (들여쓰기 주의)
     html = f"""
     <div class="dong-card">
         <div class="dong-header">
@@ -598,19 +596,17 @@ def generate_dong_html(sub_df, dong_name):
             
             status, live_type, ho_full = cell_data
             
-            # [수정] 상태별 클래스 매핑 ('방문완료' 추가)
             if status == '찬성':
                 cls = "status-done"      
             elif status == '반대':
                 cls = "status-ban"       
             elif status == '방문완료':
-                cls = "status-visited"   # 노란색
+                cls = "status-visited"   
             else:
                 cls = "status-todo"      
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
-            # [중요] HTML 문자열 생성 시 들여쓰기 문제 방지 (한 줄로 작성)
             cell_content = f'<div><span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span></div><div class="memo-box"></div>'
             html += f'<td class="apt-cell {cls} {border_class}">{cell_content}</td>'
 
@@ -642,7 +638,6 @@ def generate_dong_html(sub_df, dong_name):
 # 4. 메인 화면
 # ---------------------------------------------------------
 st.sidebar.header("설정")
-# [설정] 기본값을 1로 변경 (프린트 편의성)
 cols_num = st.sidebar.slider("한 줄에 동 배치", 1, 5, 1) 
 
 if st.sidebar.button("🔄 데이터 새로고침"):
@@ -655,8 +650,6 @@ else:
     total_cnt = len(df)
     agree_cnt = len(df[df['동의여부']=='찬성'])
     disagree_cnt = len(df[df['동의여부']=='반대'])
-    
-    # [수정] 통계 기준을 '방문완료'로 변경
     visited_cnt = len(df[df['동의여부']=='방문완료'])
     
     agree_rate = (agree_cnt / total_cnt * 100) if total_cnt > 0 else 0
@@ -671,7 +664,6 @@ else:
     k4.metric("방문 완료", f"{visited_cnt}세대") 
     k5.metric("동의율", f"{agree_rate:.1f}%")
     
-    # [수정] 범례 텍스트 업데이트
     st.markdown("""
     <div style="font-size:14px; color:#555; margin-top:10px; padding:10px; background-color:#f8f9fa; border-radius:5px;">
         <strong>[범례 가이드]</strong><br>
