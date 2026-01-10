@@ -85,7 +85,7 @@ st.markdown("""
 
         padding: 8px 2px;
         text-align: center;
-        height: 80px;         /* 메모 공간 확보 */
+        height: 80px;        /* 메모 공간 확보 */
         vertical-align: top;  /* 텍스트 위로 정렬 */
         white-space: normal;  
         overflow: hidden;
@@ -111,12 +111,14 @@ st.markdown("""
     
     .border-bold { border-right: 2px solid #555 !important; }
     
-    /* 상태별 색상 */
-    .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   
+    /* 상태별 색상 수정됨 */
+    /* ▼▼▼ [수정됨] 찬성(동의) 배경 검정, 글자 흰색 ▼▼▼ */
+    .status-done { background-color: #000000; color: #ffffff; font-weight: bold; }   
+    
     .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    
     .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } 
     
-    /* ▼▼▼ [수정됨] 미응답 세대(흰색 배경) 글자색을 검정(#000)으로 변경 ▼▼▼ */
+    /* 미응답 세대 */
     .status-todo { background-color: #ffffff; color: #000000; }                       
     
     .icon-style { font-size: 14px; margin-right: 2px; }
@@ -133,7 +135,10 @@ st.markdown("""
     /* 메모 스타일 */
     .memo-text {
         font-size: 11px;
-        color: #495057;
+        /* 배경이 검정일 때 메모도 잘 보이도록 색상 조정이 필요할 수 있으나, 
+           inherit을 쓰거나 명시적으로 지정합니다. 
+           여기서는 부모(.status-done 등)의 color를 따라가도록 설정 */
+        color: inherit; 
         font-weight: normal;
         line-height: 1.2;
         min-height: 10px; 
@@ -335,10 +340,11 @@ else:
     k4.metric("방문 완료", f"{visited_cnt}세대")
     k5.metric("동의율", f"{agree_rate:.1f}%")
     
+    # ▼▼▼ [수정됨] 범례 가이드 업데이트 (검정색) ▼▼▼
     st.markdown("""
     <div style="font-size:14px; color:#555; margin-top:10px; padding:10px; background-color:#f8f9fa; border-radius:5px;">
         <strong>[범례 가이드]</strong><br>
-        🟦 <b>파란색 (동의):</b> 동의 의사 밝힌 세대<br> 
+        ⬛ <b>검정색 (동의):</b> 동의 의사 밝힌 세대<br> 
         🟥 <b>빨간색 (연락금지):</b> 연락 및 방문 금지 세대<br>
         🟨 <b>노란색 (방문완료):</b> 방문하였으나 부재/보류 등<br>
         ⬜ <b>흰색 (미접수):</b> 아직 연락되지 않은 세대
