@@ -334,6 +334,8 @@
 #                 sub_df = df[df['동'] == dong_name]
 #                 st.markdown(generate_dong_html(sub_df, dong_name), unsafe_allow_html=True)
 
+
+
 import streamlit as st
 import pandas as pd
 import gspread
@@ -443,19 +445,27 @@ st.markdown("""
     .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   /* 파란색 (찬성) */
     .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    /* 빨간색 (반대/연락금지) */
     .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } /* 노란색 (방문완료) */
-    .status-todo { background-color: #ffffff; color: #adb5bd; }                        /* 흰색 (미접수) */
+    
+    /* [수정] 미접수(흰색) 상태: 글자색을 검정(#000)으로 변경하여 가독성 높임 */
+    .status-todo { background-color: #ffffff; color: #000000; font-weight: bold; }
     
     .icon-style { font-size: 14px; margin-right: 2px; }
     .ho-text { font-size: 13px; font-family: sans-serif; font-weight: bold; display: inline-block; margin-bottom: 5px;} 
     
-    /* [수정] 메모 박스 스타일 - 배경을 투명하게 변경 */
+    /* 기본 메모 박스 스타일 */
     .memo-box {
         width: 100%;
         height: 45px; 
-        border: 1px dashed #adb5bd; /* 테두리는 유지 */
+        border: 1px dashed #adb5bd; /* 기본: 회색 점선 */
         border-radius: 4px;
-        background-color: transparent; /* 투명하게 하여 부모 셀(호실)의 색이 보이게 함 */
+        background-color: transparent; 
         margin-top: 2px;
+    }
+    
+    /* [추가] 미접수 상태(status-todo)인 경우 메모 박스 테두리를 진한 검정으로 변경 */
+    .status-todo .memo-box {
+        border: 2px dashed #000000; /* 두꺼운 검정 점선 */
+        opacity: 0.8;
     }
     
     .entrance-row td {
@@ -496,6 +506,8 @@ st.markdown("""
         .stSidebar, .stButton, header, footer { display: none !important; }
         .block-container { padding: 0 !important; }
         .dong-card { border: 1px solid #000; break-inside: avoid; margin-bottom: 20px; }
+        /* 프린트 시 배경색 강제 적용 (브라우저 설정에 따라 다를 수 있음) */
+        .status-todo .memo-box { border: 2px dashed #000000 !important; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -670,7 +682,7 @@ else:
         🟦 <b>파란색 (동의):</b> 동의 의사 밝힌 세대<br> 
         🟥 <b>빨간색 (연락금지):</b> 연락 및 방문 금지 세대<br>
         🟨 <b>노란색 (방문완료):</b> 산호 지원군 분들이 1차 방문완료하여 안내드린 세대<br>
-        ⬜ <b>흰색 (미접수):</b> 아직 방문하지 않은 세대
+        ⬜ <b>흰색 (미접수):</b> 아직 방문하지 않은 세대 <b style='color:black;'>(방문필요)</b>
     </div>
     """, unsafe_allow_html=True)
         
