@@ -335,7 +335,6 @@
 #                 st.markdown(generate_dong_html(sub_df, dong_name), unsafe_allow_html=True)
 
 
-
 import streamlit as st
 import pandas as pd
 import gspread
@@ -372,7 +371,8 @@ if not check_password():
 
 st.markdown("""
 <style>
-    .block-container { padding-top: 1rem; padding-bottom: 5rem; }
+    /* 제목 잘림 방지 (padding-top: 3rem) */
+    .block-container { padding-top: 3rem; padding-bottom: 5rem; }
     
     .dong-card {
         background-color: white;
@@ -415,11 +415,12 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
+    /* [수정] 셀 높이 85px -> 90px (내용 추가 공간 확보) */
     .apt-cell {
         border: 1px solid #dee2e6;
         padding: 4px;
         text-align: center;
-        height: 85px; 
+        height: 90px; 
         vertical-align: top; 
         white-space: normal; 
         overflow: hidden;
@@ -442,30 +443,52 @@ st.markdown("""
     .border-bold { border-right: 2px solid #555 !important; }
     
     /* ★ [상태별 색상 정의] ★ */
-    .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   /* 파란색 (찬성) */
-    .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    /* 빨간색 (반대/연락금지) */
-    .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } /* 노란색 (방문완료) */
-    
-    /* [수정] 미접수(흰색) 상태: 글자색을 검정(#000)으로 변경하여 가독성 높임 */
-    .status-todo { background-color: #ffffff; color: #000000; font-weight: bold; }
+    .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   /* 파란색 */
+    .status-ban { background-color: #ffe3e3; color: #c92a2a; font-weight: bold; }    /* 빨간색 */
+    .status-visited { background-color: #fff3cd; color: #856404; font-weight: bold; } /* 노란색 */
+    .status-todo { background-color: #ffffff; color: #000000; font-weight: bold; }    /* 흰색 (미접수) */
     
     .icon-style { font-size: 14px; margin-right: 2px; }
-    .ho-text { font-size: 13px; font-family: sans-serif; font-weight: bold; display: inline-block; margin-bottom: 5px;} 
+    .ho-text { font-size: 13px; font-family: sans-serif; font-weight: bold; display: inline-block; margin-bottom: 4px;} 
     
-    /* 기본 메모 박스 스타일 */
+    /* [수정] 메모 박스 스타일 */
     .memo-box {
         width: 100%;
-        height: 45px; 
-        border: 1px dashed #adb5bd; /* 기본: 회색 점선 */
+        height: 50px; /* 박스 높이 조정 */
+        border: 1px dashed #adb5bd; 
         border-radius: 4px;
         background-color: transparent; 
         margin-top: 2px;
+        display: flex;       /* 내부 분할을 위해 flex 사용 */
+        flex-direction: column;
     }
     
-    /* [추가] 미접수 상태(status-todo)인 경우 메모 박스 테두리를 진한 검정으로 변경 */
+    /* 미접수 상태(status-todo)의 메모 박스: 진한 검정 테두리 */
     .status-todo .memo-box {
-        border: 2px dashed #000000; /* 두꺼운 검정 점선 */
-        opacity: 0.8;
+        border: 2px dashed #000000;
+        opacity: 0.9;
+    }
+    
+    /* [추가] 메모박스 상단 (세입자|소유자) */
+    .memo-top {
+        height: 20px;
+        border-bottom: 1px dashed #adb5bd;
+        font-size: 10px;
+        line-height: 20px;
+        color: #555;
+        text-align: center;
+    }
+    
+    /* 미접수 상태의 메모박스 상단은 검정색으로 진하게 */
+    .status-todo .memo-top {
+        border-bottom: 1px dashed #000000;
+        color: #000000;
+        font-weight: normal; /* 글자는 너무 두껍지 않게 */
+    }
+    
+    /* [추가] 메모박스 하단 (공란) */
+    .memo-bottom {
+        flex: 1; /* 남은 공간 다 차지 */
     }
     
     .entrance-row td {
@@ -501,13 +524,12 @@ st.markdown("""
     }
     @media only screen and (max-width: 800px) { .mobile-hint { display: block; } }
     
-    /* 프린트 설정 */
     @media print {
         .stSidebar, .stButton, header, footer { display: none !important; }
         .block-container { padding: 0 !important; }
         .dong-card { border: 1px solid #000; break-inside: avoid; margin-bottom: 20px; }
-        /* 프린트 시 배경색 강제 적용 (브라우저 설정에 따라 다를 수 있음) */
         .status-todo .memo-box { border: 2px dashed #000000 !important; }
+        .status-todo .memo-top { border-bottom: 1px dashed #000000 !important; color: #000 !important; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -548,23 +570,15 @@ df = load_data()
 # 3. HTML 생성 함수
 # ---------------------------------------------------------
 def generate_dong_html(sub_df, dong_name):
-    # 피벗 테이블 생성
     sub_df['info'] = list(zip(sub_df['동의여부'], sub_df['거주유형'], sub_df['호']))
     pivot = sub_df.pivot_table(index='층', columns='라인', values='info', aggfunc='first')
     pivot = pivot.sort_index(ascending=False) 
     
     total = len(sub_df)
     
-    # 1. 찬성 수
     agree_count = len(sub_df[sub_df['동의여부'] == '찬성'])
-    
-    # 2. 접수 수 (찬성 + 반대)
     submitted_count = len(sub_df[sub_df['동의여부'].isin(['찬성', '반대'])])
-    
-    # 3. 동의율
     agree_rate = (agree_count / total * 100) if total > 0 else 0
-    
-    # 4. 임대 비율
     rented_count = len(sub_df[sub_df['거주유형'] == '임대중'])
     rented_rate = (rented_count / total * 100) if total > 0 else 0
     
@@ -579,7 +593,8 @@ def generate_dong_html(sub_df, dong_name):
         <div class="dong-header">
             <div style="font-size:20px; margin-bottom:5px;">{dong_name}동</div>
             <div style="font-size:14px; font-weight:normal;">
-                총 {total} 세대 
+                총 {total} 세대 중 
+                <span style="color:#74c0fc; font-weight:bold;">{submitted_count} 세대 접수</span>
                 (동의율: {agree_rate:.1f}%)<br>
                 <span style="font-size:12px; color:#ced4da; margin-top:3px; display:inline-block;">(임대비율: {rented_rate:.0f}%)</span>
             </div>
@@ -618,7 +633,15 @@ def generate_dong_html(sub_df, dong_name):
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
-            cell_content = f'<div><span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span></div><div class="memo-box"></div>'
+            # [수정] 미접수(흰색) 세대만 구분란 표시
+            if cls == "status-todo":
+                # '세입자 | 소유자' 로 표시 (집주인거주 -> 소유자로 간략화하여 공간확보)
+                memo_content = '<div class="memo-top">세입자 | 소유자</div><div class="memo-bottom"></div>'
+            else:
+                # 다른 상태는 그냥 빈 공란
+                memo_content = ''
+
+            cell_content = f'<div><span class="icon-style">{icon}</span><span class="ho-text">{ho_full}</span></div><div class="memo-box">{memo_content}</div>'
             html += f'<td class="apt-cell {cls} {border_class}">{cell_content}</td>'
 
         html += "</tr>"
