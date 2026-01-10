@@ -375,7 +375,7 @@ st.markdown("""
     
     .dong-card {
         background-color: white;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #999; /* 외곽 테두리도 조금 더 진하게 */
         border-radius: 8px;
         padding: 0px;
         margin-bottom: 30px; 
@@ -414,12 +414,12 @@ st.markdown("""
         margin-bottom: 0px;
     }
     
-    /* [수정] 셀 높이를 110px로 더 늘림 (메모 공간 및 글씨 확대 반영) */
+    /* [수정] 기본 셀 테두리를 진한 회색(#888)으로 변경하여 모든 호실 구분 명확화 */
     .apt-cell {
-        border: 1px solid #dee2e6;
-        padding: 4px;
+        border: 1px solid #888888; /* 기존 #dee2e6(연회색) -> #888(진한회색) 변경 */
+        padding: 3px; 
         text-align: center;
-        height: 110px; 
+        height: 150px; 
         vertical-align: top; 
         white-space: normal; 
         overflow: hidden;
@@ -432,14 +432,24 @@ st.markdown("""
         color: #495057;
         font-weight: bold;
         font-size: 11px;
-        border-right: 2px solid #adb5bd !important;
+        border-right: 2px solid #555 !important; /* 층수와 호실 사이 구분선 */
+        border-bottom: 1px solid #888; /* 층수 칸 아래도 진하게 */
         vertical-align: middle; 
         position: sticky;
         left: 0;
         z-index: 10;
+        padding: 4px;
     }
     
-    .border-bold { border-right: 2px solid #555 !important; }
+    /* [수정] 계단식 라인(현관) 구분선: 아주 진한 검정색(#222) */
+    .separation-vertical { 
+        border-right: 2px solid #222222 !important; 
+    }
+
+    /* [수정] 복도식 층 구분선: 아주 진한 검정색(#222) */
+    .separation-horizontal { 
+        border-bottom: 2px solid #222222 !important; 
+    }
     
     /* ★ [상태별 색상 정의] ★ */
     .status-done { background-color: #e7f5ff; color: #1971c2; font-weight: bold; }   /* 파란색 */
@@ -448,58 +458,59 @@ st.markdown("""
     .status-todo { background-color: #ffffff; color: #000000; font-weight: bold; }    /* 흰색 */
     
     .icon-style { font-size: 14px; margin-right: 2px; }
-    .ho-text { font-size: 13px; font-family: sans-serif; font-weight: bold; display: inline-block; margin-bottom: 4px;} 
     
-    /* 메모 박스 기본 레이아웃 */
+    .ho-text { 
+        font-size: 13px; 
+        font-family: sans-serif; 
+        font-weight: bold; 
+        display: inline-block; 
+        margin-top: 2px; 
+        margin-bottom: 2px;
+    } 
+    
     .memo-box {
         width: 100%;
-        height: 65px; /* 박스 높이 키움 */
-        border-radius: 4px;
+        height: 115px; 
+        border-radius: 4px; 
         background-color: transparent; 
-        margin-top: 2px;
         display: flex;       
         flex-direction: column;
+        margin-top: 2px;
     }
     
-    /* [수정] 메모 상단 (글씨 크기 확대 10px -> 12px, bold) */
     .memo-top {
-        height: 24px;
-        line-height: 24px;
-        font-size: 12px; 
+        height: 20px; 
+        line-height: 20px;
+        font-size: 11px; 
         font-weight: bold;
         text-align: center;
+        opacity: 0.7;
     }
     
-    /* 메모 하단 (공란) */
     .memo-bottom {
         flex: 1; 
     }
 
-    /* ------------------------------------------------ */
-    /* [Case 1] 미접수 (흰색) 스타일 정의 */
-    /* ------------------------------------------------ */
+    /* [Case 1] 미접수 (흰색) */
     .status-todo .memo-box {
         border: 2px dashed #000000;
-        opacity: 0.9;
+        opacity: 0.8;
     }
     .status-todo .memo-top {
         border-bottom: 1px dashed #000000;
         color: #000000;
     }
 
-    /* ------------------------------------------------ */
-    /* [Case 2] 방문완료 (노란색) 스타일 정의 */
-    /* ------------------------------------------------ */
+    /* [Case 2] 방문완료 (노란색) */
     .status-visited .memo-box {
-        border: 1px dashed #856404; /* 짙은 노란/갈색 점선 */
-        opacity: 0.9;
+        border: 1px dashed #856404; 
+        opacity: 0.8;
     }
     .status-visited .memo-top {
         border-bottom: 1px dashed #856404;
-        color: #856404; /* 글씨도 짙은 색으로 */
+        color: #856404; 
     }
 
-    
     .entrance-row td {
         background-color: #e9ecef;
         color: #495057;
@@ -508,10 +519,11 @@ st.markdown("""
         font-size: 12px;
         font-weight: bold;
         height: 35px;
-        border-top: 2px solid #555;
-        border-right: 1px solid #dee2e6;
-        border-left: 1px solid #dee2e6;
+        border-top: 2px solid #222; /* 현관 위쪽 선도 진하게 */
+        border-right: 1px solid #888;
+        border-left: 1px solid #888;
         border-bottom: none !important; 
+        padding: 5px;
     }
     .entrance-empty {
         background-color: #fff !important;
@@ -537,13 +549,10 @@ st.markdown("""
         .stSidebar, .stButton, header, footer { display: none !important; }
         .block-container { padding: 0 !important; }
         .dong-card { border: 1px solid #000; break-inside: avoid; margin-bottom: 20px; }
-        
-        /* 프린트 시 강제 스타일 적용 */
         .status-todo .memo-box { border: 2px dashed #000000 !important; }
-        .status-todo .memo-top { border-bottom: 1px dashed #000000 !important; color: #000 !important; }
-        
         .status-visited .memo-box { border: 1px dashed #856404 !important; }
-        .status-visited .memo-top { border-bottom: 1px dashed #856404 !important; color: #856404 !important; }
+        /* 인쇄 시에도 선 선명하게 */
+        .apt-cell { border: 1px solid #000 !important; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -620,17 +629,28 @@ def generate_dong_html(sub_df, dong_name):
     
     for floor, row in pivot.iterrows():
         html += "<tr>"
-        html += f'<td class="apt-cell floor-cell">{floor}F</td>'
+        
+        # 층 표시 셀 (복도식일 경우 층 구분선 적용)
+        floor_style_class = "separation-horizontal" if is_corridor else ""
+        html += f'<td class="apt-cell floor-cell {floor_style_class}">{floor}F</td>'
         
         for idx, line in enumerate(pivot.columns):
+            style_classes = []
+            
             if is_corridor:
-                border_class = ""
+                # [복도식] 층 구분선(가로) 강조
+                style_classes.append("separation-horizontal")
             else:
-                border_class = "border-bold" if (idx + 1) % 2 == 0 else ""
+                # [계단식] 라인 구분선(세로) 강조
+                if (idx + 1) % 2 == 0 and (idx + 1) < num_cols:
+                    style_classes.append("separation-vertical")
+            
+            border_class = " ".join(style_classes)
             
             cell_data = row[line] 
             
             if not isinstance(cell_data, tuple):
+                # 빈 셀도 테두리는 진하게 유지
                 html += f'<td class="apt-cell {border_class}"></td>'
                 continue
             
@@ -647,7 +667,6 @@ def generate_dong_html(sub_df, dong_name):
             
             icon = "🏠" if live_type == '실거주' else ("👤" if live_type == '임대중' else "")
             
-            # [수정] 미접수(흰색) 또는 방문완료(노란색) 일 때 메모 박스 생성
             if cls in ["status-todo", "status-visited"]:
                 memo_content = '<div class="memo-top">세입자 | 소유자</div><div class="memo-bottom"></div>'
             else:
